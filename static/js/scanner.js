@@ -1,6 +1,6 @@
 /**
- * Price Scanner JavaScript
- * Handles barcode scanning and API communication
+ * Arabic Price Scanner - Original Working Logic with Modern Design
+ * Back to basics approach that was working on mobile
  */
 
 class PriceScanner {
@@ -19,31 +19,40 @@ class PriceScanner {
         const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
         
         if (isMobile && location.protocol !== 'https:') {
-            this.showError('Camera access requires HTTPS on mobile devices. Please use manual barcode input instead.');
+            this.showError('يتطلب الوصول للكاميرا استخدام HTTPS على الأجهزة المحمولة');
             return false;
         }
         return true;
     }
 
     initializeElements() {
-        // Buttons
-        this.startBtn = document.getElementById('start-btn');
-        this.stopBtn = document.getElementById('stop-btn');
-        this.searchBtn = document.getElementById('search-btn');
+        // Buttons - Updated for new design
+        this.startBtn = document.getElementById('start-camera');
+        this.stopBtn = document.getElementById('stop-camera');
+        this.searchBtn = document.getElementById('search-manual');
         
         // Input
         this.manualInput = document.getElementById('manual-barcode');
         
-        // Display elements
+        // Display elements - Updated for new design
+        this.scannerContainer = document.getElementById('camera-container');
         this.scannerStatus = document.getElementById('scanner-status');
-        this.resultsSection = document.getElementById('results-section');
-        this.productInfo = document.getElementById('product-info');
-        this.loading = document.getElementById('loading');
+        this.resultsSection = document.getElementById('product-result');
+        this.loading = document.getElementById('loading-state');
         this.errorMessage = document.getElementById('error-message');
+        this.errorText = document.getElementById('error-text');
+        
+        // Product display elements - New structure
+        this.productName = document.getElementById('product-name');
+        this.productPrice = document.getElementById('product-price');
+        this.productDescription = document.getElementById('product-description');
+        this.productBarcode = document.getElementById('product-barcode');
+        this.closeResultBtn = document.getElementById('close-result');
+        this.closeErrorBtn = document.getElementById('close-error');
     }
 
     setupEventListeners() {
-        // Scanner controls
+        // Scanner controls - Simple original approach
         this.startBtn.addEventListener('click', () => this.startScanner());
         this.stopBtn.addEventListener('click', () => this.stopScanner());
         
@@ -55,13 +64,20 @@ class PriceScanner {
             }
         });
 
+        // Close buttons
+        this.closeResultBtn.addEventListener('click', () => this.hideResults());
+        this.closeErrorBtn.addEventListener('click', () => this.hideError());
+
         // Auto-focus manual input when page loads
         this.manualInput.focus();
     }
 
     async startScanner() {
         try {
-            this.showStatus('Initializing camera...');
+            this.showStatus('جاري تشغيل الكاميرا...');
+            
+            // Show scanner container
+            this.scannerContainer.classList.remove('hidden');
             
             // Initialize scanner
             this.html5QrCode = new Html5Qrcode("qr-reader");
@@ -69,7 +85,7 @@ class PriceScanner {
             // Get cameras
             const cameras = await Html5Qrcode.getCameras();
             if (cameras.length === 0) {
-                throw new Error('No cameras found');
+                throw new Error('لا توجد كاميرات متاحة');
             }
 
             // Use back camera if available, otherwise use first camera
@@ -78,7 +94,7 @@ class PriceScanner {
                 camera.label.toLowerCase().includes('rear')
             )?.id || cameras[0].id;
 
-            // Scanner configuration
+            // Scanner configuration - Simple working config
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
@@ -95,12 +111,12 @@ class PriceScanner {
 
             this.isScanning = true;
             this.updateScannerControls();
-            this.showStatus('Scanner active - Point camera at barcode');
+            this.showStatus('وجه الكاميرا نحو الباركود');
 
         } catch (error) {
             console.error('Scanner error:', error);
-            this.showError(`Camera error: ${error.message}`);
-            this.showStatus('Click "Start Scanner" to begin');
+            this.showError(`خطأ في الكاميرا: ${error.message}`);
+            this.scannerContainer.classList.add('hidden');
         }
     }
 
@@ -112,15 +128,15 @@ class PriceScanner {
             }
             
             this.isScanning = false;
+            this.scannerContainer.classList.add('hidden');
             this.updateScannerControls();
-            this.showStatus('Scanner stopped');
             
         } catch (error) {
             console.error('Stop scanner error:', error);
         }
     }
 
-    onScanSuccess(decodedText) {
+    async onScanSuccess(decodedText) {
         // Prevent rapid repeated scans
         const now = Date.now();
         if (now - this.lastScanTime < this.scanCooldown) {
@@ -129,7 +145,10 @@ class PriceScanner {
         this.lastScanTime = now;
 
         console.log('Scanned barcode:', decodedText);
-        this.showStatus(`Scanned: ${decodedText}`);
+        this.showStatus(`تم المسح: ${decodedText}`);
+        
+        // Auto-hide scanner after successful scan
+        await this.stopScanner();
         
         // Search for product
         this.searchProduct(decodedText);
@@ -137,7 +156,6 @@ class PriceScanner {
 
     onScanError(error) {
         // Ignore common scanning errors (they're normal)
-        // Only log if it's not a typical "no QR code found" error
         if (!error.includes('No QR code found')) {
             console.log('Scan error:', error);
         }
@@ -147,7 +165,7 @@ class PriceScanner {
         const barcode = this.manualInput.value.trim();
         
         if (!barcode) {
-            this.showError('Please enter a barcode');
+            this.showError('يرجى إدخال رقم الباركود');
             this.manualInput.focus();
             return;
         }
@@ -163,14 +181,14 @@ class PriceScanner {
             this.hideError();
             this.hideResults();
 
-            // Make API request
+            // Make API request - Same as original
             const response = await fetch(`/api/price/${encodeURIComponent(barcode)}`);
             
             if (!response.ok) {
                 if (response.status === 404) {
-                    throw new Error('Product not found');
+                    throw new Error('المنتج غير موجود');
                 } else {
-                    throw new Error(`Server error: ${response.status}`);
+                    throw new Error(`خطأ في الخادم: ${response.status}`);
                 }
             }
 
@@ -186,22 +204,14 @@ class PriceScanner {
     }
 
     displayProduct(product) {
-        // Update product info
-        this.productInfo.innerHTML = `
-            <h2>${this.escapeHtml(product.product_name)}</h2>
-            <div class="price">${product.currency} ${product.price.toFixed(2)}</div>
-            <div class="description">${this.escapeHtml(product.description || 'No description available')}</div>
-            <div class="barcode">Barcode: ${this.escapeHtml(product.barcode)}</div>
-        `;
+        // Update product info - Adapted for new structure
+        this.productName.textContent = this.escapeHtml(product.product_name);
+        this.productPrice.textContent = `${product.price.toFixed(2)} ${product.currency}`;
+        this.productDescription.textContent = this.escapeHtml(product.description || 'لا يوجد وصف متاح');
+        this.productBarcode.textContent = `الباركود: ${this.escapeHtml(product.barcode)}`;
 
-        // Show results with animation
-        this.resultsSection.style.display = 'block';
-        this.productInfo.classList.add('animate');
-
-        // Remove animation class after animation completes
-        setTimeout(() => {
-            this.productInfo.classList.remove('animate');
-        }, 500);
+        // Show results
+        this.resultsSection.classList.remove('hidden');
 
         // Clear manual input
         this.manualInput.value = '';
@@ -211,29 +221,29 @@ class PriceScanner {
 
     updateScannerControls() {
         if (this.isScanning) {
-            this.startBtn.style.display = 'none';
-            this.stopBtn.style.display = 'inline-block';
+            this.startBtn.classList.add('hidden');
+            this.stopBtn.classList.remove('hidden');
         } else {
-            this.startBtn.style.display = 'inline-block';
-            this.stopBtn.style.display = 'none';
+            this.startBtn.classList.remove('hidden');
+            this.stopBtn.classList.add('hidden');
         }
     }
 
     showStatus(message) {
-        this.scannerStatus.innerHTML = `<p>${this.escapeHtml(message)}</p>`;
+        this.scannerStatus.textContent = this.escapeHtml(message);
     }
 
     showLoading() {
-        this.loading.style.display = 'block';
+        this.loading.classList.remove('hidden');
     }
 
     hideLoading() {
-        this.loading.style.display = 'none';
+        this.loading.classList.add('hidden');
     }
 
     showError(message) {
-        this.errorMessage.innerHTML = `<strong>Error:</strong> ${this.escapeHtml(message)}`;
-        this.errorMessage.style.display = 'block';
+        this.errorText.textContent = this.escapeHtml(message);
+        this.errorMessage.classList.remove('hidden');
         
         // Auto-hide error after 5 seconds
         setTimeout(() => {
@@ -242,11 +252,11 @@ class PriceScanner {
     }
 
     hideError() {
-        this.errorMessage.style.display = 'none';
+        this.errorMessage.classList.add('hidden');
     }
 
     hideResults() {
-        this.resultsSection.style.display = 'none';
+        this.resultsSection.classList.add('hidden');
     }
 
     escapeHtml(text) {
@@ -256,13 +266,13 @@ class PriceScanner {
     }
 }
 
-// Initialize scanner when page loads
+// Initialize scanner when page loads - Same as original
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing Price Scanner...');
     window.scanner = new PriceScanner();
 });
 
-// Handle page visibility changes (pause scanner when tab is hidden)
+// Handle page visibility changes - Same as original
 document.addEventListener('visibilitychange', () => {
     if (window.scanner && window.scanner.isScanning) {
         if (document.hidden) {

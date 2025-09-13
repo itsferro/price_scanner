@@ -1,65 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Price Scanner</title>
+    <title>ماسح الأسعار</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🔍 Price Scanner</h1>
-            <p>Scan barcodes to check prices instantly</p>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="icon">📱</span>
+                    ماسح الأسعار
+                </h1>
+                <p class="app-subtitle">امسح الباركود واحصل على السعر فوراً</p>
+            </div>
         </header>
 
-        <main>
-            <!-- Scanner Section -->
-            <div class="scanner-section">
-                <div id="scanner-container">
-                    <div id="qr-reader"></div>
-                    <div id="scanner-status">
-                        <p>Click "Start Scanner" to begin</p>
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-state hidden">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+            <p class="loading-text">جاري البحث عن المنتج...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="error-message hidden">
+            <div class="error-content">
+                <span class="error-icon">⚠️</span>
+                <span id="error-text" class="error-text"></span>
+            </div>
+            <button id="close-error" class="error-close">×</button>
+        </div>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Product Result Card (Top) -->
+            <div id="product-result" class="product-card hidden">
+                <div class="product-header">
+                    <h2 id="product-name" class="product-name"></h2>
+                    <button id="close-result" class="close-btn">×</button>
+                </div>
+                <div class="product-details">
+                    <div class="price-section">
+                        <span class="price-label">السعر</span>
+                        <span id="product-price" class="product-price"></span>
+                    </div>
+                    <div class="product-info">
+                        <p id="product-description" class="product-description"></p>
+                        <code id="product-barcode" class="product-barcode"></code>
                     </div>
                 </div>
-                
-                <div class="scanner-controls">
-                    <button id="start-btn" class="btn btn-primary">Start Scanner</button>
-                    <button id="stop-btn" class="btn btn-secondary" style="display: none;">Stop Scanner</button>
+            </div>
+
+            <!-- Scanner Section -->
+            <div class="scanner-section">
+                <div id="camera-container" class="camera-container hidden">
+                    <div class="camera-frame">
+                        <div id="qr-reader" class="qr-reader"></div>
+                        <div class="scan-overlay">
+                            <div class="scan-line"></div>
+                        </div>
+                    </div>
+                    <p id="scanner-status" class="scanner-status">وجه الكاميرا نحو الباركود</p>
                 </div>
             </div>
 
             <!-- Manual Input Section -->
-            <div class="manual-section">
-                <h3>📱 Enter barcode manually:</h3>
-                <p class="mobile-note">Mobile users: If camera doesn't work, use this manual input</p>
+            <div class="manual-input-section">
+                <div class="input-header">
+                    <h3 class="input-title">
+                        <span class="icon">⌨️</span>
+                        إدخال الباركود يدوياً
+                    </h3>
+                    <p class="input-subtitle">يمكنك كتابة رقم الباركود بدلاً من المسح</p>
+                </div>
+                
                 <div class="input-group">
-                    <input type="text" id="manual-barcode" placeholder="Enter barcode here..." maxlength="50" autocomplete="off">
-                    <button id="search-btn" class="btn btn-primary">Search</button>
+                    <input 
+                        type="text" 
+                        id="manual-barcode" 
+                        class="barcode-input" 
+                        placeholder="أدخل رقم الباركود هنا..." 
+                        maxlength="50" 
+                        autocomplete="off"
+                        dir="ltr"
+                    >
+                    <button id="search-manual" class="btn btn-accent">
+                        <span class="btn-icon">🔍</span>
+                        بحث
+                    </button>
+                    
+                    <div class="action-buttons">
+                        <button id="start-camera" class="btn btn-primary">
+                            <span class="btn-icon">📷</span>
+                            تشغيل الكاميرا
+                        </button>
+                        <button id="stop-camera" class="btn btn-secondary hidden">
+                            <span class="btn-icon">⏹️</span>
+                            إيقاف الكاميرا
+                        </button>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Results Section -->
-            <div id="results-section" class="results-section" style="display: none;">
-                <div id="product-info" class="product-card">
-                    <!-- Product information will be displayed here -->
-                </div>
-            </div>
-
-            <!-- Loading Indicator -->
-            <div id="loading" class="loading" style="display: none;">
-                <div class="spinner"></div>
-                <p>Searching for product...</p>
-            </div>
-
-            <!-- Error Message -->
-            <div id="error-message" class="error-message" style="display: none;">
-                <!-- Error messages will be displayed here -->
             </div>
         </main>
 
-        <footer>
-            <p>Scanner System v1.0</p>
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p class="footer-text">نظام ماسح الأسعار - الإصدار 2.0</p>
         </footer>
     </div>
 
