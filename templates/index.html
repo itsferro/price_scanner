@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Scanner</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Price Scanner</h1>
+            <p>Scan barcodes to check prices instantly</p>
+        </header>
+
+        <main>
+            <!-- Scanner Section -->
+            <div class="scanner-section">
+                <div id="scanner-container">
+                    <div id="qr-reader"></div>
+                    <div id="scanner-status">
+                        <p>Click "Start Scanner" to begin</p>
+                    </div>
+                </div>
+                
+                <div class="scanner-controls">
+                    <button id="start-btn" class="btn btn-primary">Start Scanner</button>
+                    <button id="stop-btn" class="btn btn-secondary" style="display: none;">Stop Scanner</button>
+                </div>
+            </div>
+
+            <!-- Manual Input Section -->
+            <div class="manual-section">
+                <h3>📱 Enter barcode manually:</h3>
+                <p class="mobile-note">Mobile users: If camera doesn't work, use this manual input</p>
+                <div class="input-group">
+                    <input type="text" id="manual-barcode" placeholder="Enter barcode here..." maxlength="50" autocomplete="off">
+                    <button id="search-btn" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-section" class="results-section" style="display: none;">
+                <div id="product-info" class="product-card">
+                    <!-- Product information will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Searching for product...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="error-message" style="display: none;">
+                <!-- Error messages will be displayed here -->
+            </div>
+        </main>
+
+        <footer>
+            <p>Scanner System v1.0</p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="/static/js/scanner.js"></script>
+</body>
+</html>
