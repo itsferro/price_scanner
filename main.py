@@ -2,6 +2,7 @@
 Price Scanner System - FastAPI Application
 """
 import os
+import socket
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -30,6 +31,19 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Initialize templates
 templates = Jinja2Templates(directory="templates")
 
+def get_local_ip():
+    """Get the local IP address of the machine"""
+    try:
+        # Create a socket and connect to a remote address to determine local IP
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            # Connect to Google's public DNS (doesn't actually send data)
+            s.connect(("8.8.8.8", 80))
+            local_ip = s.getsockname()[0]
+        return local_ip
+    except Exception:
+        # Fallback to localhost if detection fails
+        return "localhost"
+
 @app.on_event("startup")
 async def startup_event():
     """Test database connection on startup"""
@@ -39,6 +53,13 @@ async def startup_event():
         print("✅ Database connection successful")
     else:
         print(f"❌ Database connection failed: {message}")
+    
+    # Display access information
+    local_ip = get_local_ip()
+    protocol = "https" if (os.path.exists("cert.pem") and os.path.exists("key.pem")) else "http"
+    print(f"🌐 Server accessible at:")
+    print(f"   - Local: {protocol}://localhost:{PORT}")
+    print(f"   - Network: {protocol}://{local_ip}:{PORT}")
 
 @app.get("/", response_class=HTMLResponse)
 async def scanner_page(request: Request):
@@ -68,6 +89,30 @@ async def get_price(barcode: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/api/app-url")
+async def get_app_url():
+    """Get the application access URL"""
+    try:
+        # Get local IP address
+        local_ip = get_local_ip()
+        
+        # Determine protocol (HTTPS if certificates exist, HTTP otherwise)
+        protocol = "https" if (os.path.exists("cert.pem") and os.path.exists("key.pem")) else "http"
+        
+        # Construct the URL
+        app_url = f"{protocol}://{local_ip}:{PORT}"
+        
+        return {
+            "url": app_url,
+            "local_ip": local_ip,
+            "port": PORT,
+            "protocol": protocol,
+            "ssl_enabled": protocol == "https"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get app URL: {str(e)}")
 
 @app.get("/api/health")
 async def health_check():

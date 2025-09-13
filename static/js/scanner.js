@@ -1,6 +1,6 @@
 /**
- * Arabic Price Scanner - Original Working Logic with Modern Design
- * Back to basics approach that was working on mobile
+ * Arabic Price Scanner - Fixed Mobile-Friendly Version
+ * Camera controls moved to input section for better mobile UX
  */
 
 class PriceScanner {
@@ -9,6 +9,7 @@ class PriceScanner {
         this.isScanning = false;
         this.lastScanTime = 0;
         this.scanCooldown = 2000; // 2 seconds between scans
+        this.appUrl = null;
         
         this.initializeElements();
         this.setupEventListeners();
@@ -26,7 +27,7 @@ class PriceScanner {
     }
 
     initializeElements() {
-        // Buttons - Updated for new design
+        // Buttons
         this.startBtn = document.getElementById('start-camera');
         this.stopBtn = document.getElementById('stop-camera');
         this.searchBtn = document.getElementById('search-manual');
@@ -34,7 +35,7 @@ class PriceScanner {
         // Input
         this.manualInput = document.getElementById('manual-barcode');
         
-        // Display elements - Updated for new design
+        // Display elements
         this.scannerContainer = document.getElementById('camera-container');
         this.scannerStatus = document.getElementById('scanner-status');
         this.resultsSection = document.getElementById('product-result');
@@ -42,17 +43,22 @@ class PriceScanner {
         this.errorMessage = document.getElementById('error-message');
         this.errorText = document.getElementById('error-text');
         
-        // Product display elements - New structure
+        // Product display elements
         this.productName = document.getElementById('product-name');
         this.productPrice = document.getElementById('product-price');
         this.productDescription = document.getElementById('product-description');
         this.productBarcode = document.getElementById('product-barcode');
         this.closeResultBtn = document.getElementById('close-result');
         this.closeErrorBtn = document.getElementById('close-error');
+        
+        // App URL elements (simplified - no share button)
+        this.getUrlBtn = document.getElementById('get-app-url');
+        this.copyUrlBtn = document.getElementById('copy-app-url');
+        this.urlDisplay = document.getElementById('url-display');
     }
 
     setupEventListeners() {
-        // Scanner controls - Simple original approach
+        // Scanner controls
         this.startBtn.addEventListener('click', () => this.startScanner());
         this.stopBtn.addEventListener('click', () => this.stopScanner());
         
@@ -67,6 +73,10 @@ class PriceScanner {
         // Close buttons
         this.closeResultBtn.addEventListener('click', () => this.hideResults());
         this.closeErrorBtn.addEventListener('click', () => this.hideError());
+        
+        // App URL functionality (simplified)
+        this.getUrlBtn.addEventListener('click', () => this.getAppUrl());
+        this.copyUrlBtn.addEventListener('click', () => this.copyAppUrl());
 
         // Auto-focus manual input when page loads
         this.manualInput.focus();
@@ -74,6 +84,10 @@ class PriceScanner {
 
     async startScanner() {
         try {
+            // Hide any existing results when starting camera
+            this.hideResults();
+            this.hideError();
+            
             this.showStatus('جاري تشغيل الكاميرا...');
             
             // Show scanner container
@@ -181,7 +195,7 @@ class PriceScanner {
             this.hideError();
             this.hideResults();
 
-            // Make API request - Same as original
+            // Make API request
             const response = await fetch(`/api/price/${encodeURIComponent(barcode)}`);
             
             if (!response.ok) {
@@ -204,7 +218,7 @@ class PriceScanner {
     }
 
     displayProduct(product) {
-        // Update product info - Adapted for new structure
+        // Update product info
         this.productName.textContent = this.escapeHtml(product.product_name);
         this.productPrice.textContent = `${product.price.toFixed(2)} ${product.currency}`;
         this.productDescription.textContent = this.escapeHtml(product.description || 'لا يوجد وصف متاح');
@@ -259,6 +273,63 @@ class PriceScanner {
         this.resultsSection.classList.add('hidden');
     }
 
+    async getAppUrl() {
+        try {
+            this.getUrlBtn.disabled = true;
+            this.getUrlBtn.innerHTML = '<span class="btn-icon">⏳</span>جاري التحميل...';
+            
+            // Call the app-url endpoint
+            const response = await fetch('/api/app-url');
+            
+            if (!response.ok) {
+                throw new Error(`خطأ في الخادم: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            this.appUrl = data.url;
+            
+            // Display the URL
+            this.displayAppUrl(this.appUrl);
+            
+        } catch (error) {
+            console.error('Get app URL error:', error);
+            this.showError('خطأ في الحصول على رابط التطبيق: ' + error.message);
+        } finally {
+            this.getUrlBtn.disabled = false;
+            this.getUrlBtn.innerHTML = '<span class="btn-icon">🔗</span>احصل على الرابط';
+        }
+    }
+
+    displayAppUrl(url) {
+        this.urlDisplay.innerHTML = `<div class="url-text">${this.escapeHtml(url)}</div>`;
+        this.urlDisplay.classList.add('has-url');
+        
+        // Show copy button only (share button removed)
+        this.copyUrlBtn.classList.remove('hidden');
+    }
+
+    async copyAppUrl() {
+        if (!this.appUrl) return;
+        
+        try {
+            await navigator.clipboard.writeText(this.appUrl);
+            
+            // Visual feedback
+            const originalText = this.copyUrlBtn.innerHTML;
+            this.copyUrlBtn.innerHTML = '<span class="btn-icon">✅</span>تم النسخ!';
+            this.copyUrlBtn.style.background = 'var(--success-color)';
+            
+            setTimeout(() => {
+                this.copyUrlBtn.innerHTML = originalText;
+                this.copyUrlBtn.style.background = '';
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Copy failed:', error);
+            this.showError('فشل في نسخ الرابط');
+        }
+    }
+
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -266,13 +337,13 @@ class PriceScanner {
     }
 }
 
-// Initialize scanner when page loads - Same as original
+// Initialize scanner when page loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing Price Scanner...');
     window.scanner = new PriceScanner();
 });
 
-// Handle page visibility changes - Same as original
+// Handle page visibility changes
 document.addEventListener('visibilitychange', () => {
     if (window.scanner && window.scanner.isScanning) {
         if (document.hidden) {

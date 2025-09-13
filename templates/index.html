@@ -11,6 +11,15 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- Error Message (Notification) -->
+        <div id="error-message" class="error-notification hidden">
+            <div class="error-content">
+                <span class="error-icon">⚠️</span>
+                <span id="error-text" class="error-text"></span>
+            </div>
+            <button id="close-error" class="error-close">×</button>
+        </div>
+
         <!-- Header -->
         <header class="app-header">
             <div class="header-content">
@@ -28,15 +37,6 @@
                 <div class="spinner"></div>
             </div>
             <p class="loading-text">جاري البحث عن المنتج...</p>
-        </div>
-
-        <!-- Error Message -->
-        <div id="error-message" class="error-message hidden">
-            <div class="error-content">
-                <span class="error-icon">⚠️</span>
-                <span id="error-text" class="error-text"></span>
-            </div>
-            <button id="close-error" class="error-close">×</button>
         </div>
 
         <!-- Main Content -->
@@ -70,17 +70,6 @@
                     </div>
                     <p id="scanner-status" class="scanner-status">وجه الكاميرا نحو الباركود</p>
                 </div>
-                    
-                <div class="action-buttons">
-                    <button id="start-camera" class="btn btn-primary">
-                        <span class="btn-icon">📷</span>
-                        تشغيل الكاميرا
-                    </button>
-                    <button id="stop-camera" class="btn btn-secondary hidden">
-                        <span class="btn-icon">⏹️</span>
-                        إيقاف الكاميرا
-                    </button>
-                </div>
             </div>
 
             <!-- Manual Input Section -->
@@ -103,13 +92,58 @@
                         autocomplete="off"
                         dir="ltr"
                     >
-                    <button id="search-manual" class="btn btn-accent">
-                        <span class="btn-icon">🔍</span>
-                        بحث
+                    <div class="input-buttons">
+                        <button id="search-manual" class="btn btn-accent">
+                            <span class="btn-icon">🔍</span>
+                            بحث
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Camera Action Buttons (Moved here for mobile-friendly design) -->
+                <div class="camera-controls">
+                    <button id="start-camera" class="btn btn-primary">
+                        <span class="btn-icon">📷</span>
+                        تشغيل الكاميرا
+                    </button>
+                    <button id="stop-camera" class="btn btn-secondary hidden">
+                        <span class="btn-icon">⏹️</span>
+                        إيقاف الكاميرا
                     </button>
                 </div>
             </div>
         </main>
+
+        <!-- App URL Section -->
+        <div class="app-url-section">
+            <div class="url-header">
+                <h3 class="url-title">
+                    <span class="icon">🌐</span>
+                    رابط الوصول للتطبيق
+                </h3>
+                <p class="url-subtitle">احصل على رابط الوصول المباشر للتطبيق</p>
+            </div>
+            
+            <div class="url-content">
+                <div class="url-display" id="url-display">
+                    <div class="url-placeholder">
+                        <span class="placeholder-icon">🔗</span>
+                        <span class="placeholder-text">اضغط "احصل على الرابط" لعرض رابط الوصول</span>
+                    </div>
+                </div>
+                
+                <div class="url-actions">
+                    <button id="get-app-url" class="btn btn-accent">
+                        <span class="btn-icon">🔗</span>
+                        احصل على الرابط
+                    </button>
+                    <button id="copy-app-url" class="btn btn-secondary hidden">
+                        <span class="btn-icon">📋</span>
+                        نسخ الرابط
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Footer -->
         <footer class="app-footer">
