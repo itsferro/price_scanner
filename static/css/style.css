@@ -1,4 +1,4 @@
-/* Modern Arabic Price Scanner - Professional Corporate Theme */
+/* Modern Arabic Price Scanner - Professional Corporate Theme with Authentication */
 
 /* Reset and Base */
 * {
@@ -79,7 +79,183 @@ body {
     overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
-/* Header - Professional Corporate Style */
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Login Container */
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+}
+
+.login-card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 400px;
+    animation: fadeIn var(--transition-slow);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.login-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin: 0;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    background: var(--gray-50);
+    transition: var(--transition-fast);
+    font-family: inherit;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.1);
+}
+
+.password-input-container {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    color: var(--gray-400);
+    transition: var(--transition-fast);
+}
+
+.password-toggle:hover {
+    color: var(--gray-600);
+}
+
+.login-btn {
+    margin-top: 1rem;
+    min-height: 56px;
+    font-size: 1.1rem;
+}
+
+/* Success Notification */
+.success-notification {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1px solid #bbf7d0;
+    color: var(--success-color);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideInRight var(--transition-normal);
+    box-shadow: var(--shadow-xl);
+    z-index: 1000;
+    max-width: 320px;
+    min-width: 280px;
+}
+
+.success-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.success-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.success-text {
+    font-weight: 500;
+}
+
+.success-close {
+    background: transparent;
+    border: none;
+    color: var(--success-color);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.125rem;
+    font-weight: bold;
+    transition: var(--transition-fast);
+    margin-right: 0.5rem;
+}
+
+.success-close:hover {
+    background: rgba(6, 95, 70, 0.1);
+}
+
+/* Main App Interface */
+.app-interface {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header - Professional Corporate Style with Logout */
 .app-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
     color: white;
@@ -105,19 +281,49 @@ body {
     text-align: center;
 }
 
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
 .app-title {
     font-size: 1.875rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 0.75rem;
 }
 
 .app-title .icon {
     font-size: 2rem;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.logout-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    font-family: inherit;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+.logout-icon {
+    font-size: 1rem;
 }
 
 .app-subtitle {
@@ -127,6 +333,13 @@ body {
     margin: 0;
 }
 
+.welcome-message {
+    font-size: 0.875rem;
+    font-weight: 400;
+    opacity: 0.8;
+    margin: 0.5rem 0 0;
+}
+
 /* Main Content */
 .app-main {
     flex: 1;
@@ -134,11 +347,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-}
-
-/* Utility Classes */
-.hidden {
-    display: none !important;
 }
 
 /* Product Result Card - Professional Teal Theme */
@@ -706,6 +914,20 @@ body {
         box-shadow: none;
     }
     
+    .login-container {
+        padding: 1rem;
+    }
+    
+    .login-card {
+        padding: 1.5rem;
+    }
+    
+    .header-top {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+    
     .app-header {
         padding: 1.5rem 1rem 1rem;
     }
@@ -732,7 +954,8 @@ body {
         height: 180px;
     }
     
-    .error-notification {
+    .error-notification,
+    .success-notification {
         top: 1rem;
         right: 1rem;
         left: 1rem;
@@ -780,6 +1003,12 @@ body {
         user-select: none;
     }
     
+    .form-input {
+        min-height: 56px;
+        font-size: 1.1rem;
+        padding: 1rem;
+    }
+    
     .barcode-input {
         min-height: 56px;
         font-size: 1.1rem;
@@ -793,11 +1022,17 @@ body {
         touch-action: manipulation;
     }
     
-    .error-close {
+    .error-close,
+    .success-close {
         width: 32px;
         height: 32px;
         font-size: 1.25rem;
         touch-action: manipulation;
+    }
+    
+    .logout-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.8rem;
     }
 }
 

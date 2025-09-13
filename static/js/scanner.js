@@ -1,6 +1,5 @@
 /**
- * Arabic Price Scanner - Fixed Mobile-Friendly Version
- * Camera controls moved to input section for better mobile UX
+ * Arabic Price Scanner - Professional Corporate Theme with Authentication
  */
 
 class PriceScanner {
@@ -10,9 +9,11 @@ class PriceScanner {
         this.lastScanTime = 0;
         this.scanCooldown = 2000; // 2 seconds between scans
         this.appUrl = null;
+        this.isAuthenticated = false;
         
         this.initializeElements();
         this.setupEventListeners();
+        this.checkAuthStatus();
     }
 
     checkMobilePermissions() {
@@ -27,12 +28,21 @@ class PriceScanner {
     }
 
     initializeElements() {
-        // Buttons
+        // Authentication elements
+        this.loginContainer = document.getElementById('login-container');
+        this.appInterface = document.getElementById('app-interface');
+        this.loginForm = document.getElementById('login-form');
+        this.usernameInput = document.getElementById('username');
+        this.passwordInput = document.getElementById('password');
+        this.loginBtn = document.getElementById('login-btn');
+        this.logoutBtn = document.getElementById('logout-btn');
+        this.togglePasswordBtn = document.getElementById('toggle-password');
+        this.welcomeMessage = document.getElementById('welcome-message');
+        
+        // Scanner elements
         this.startBtn = document.getElementById('start-camera');
         this.stopBtn = document.getElementById('stop-camera');
         this.searchBtn = document.getElementById('search-manual');
-        
-        // Input
         this.manualInput = document.getElementById('manual-barcode');
         
         // Display elements
@@ -42,6 +52,8 @@ class PriceScanner {
         this.loading = document.getElementById('loading-state');
         this.errorMessage = document.getElementById('error-message');
         this.errorText = document.getElementById('error-text');
+        this.successMessage = document.getElementById('success-message');
+        this.successText = document.getElementById('success-text');
         
         // Product display elements
         this.productName = document.getElementById('product-name');
@@ -50,72 +62,195 @@ class PriceScanner {
         this.productBarcode = document.getElementById('product-barcode');
         this.closeResultBtn = document.getElementById('close-result');
         this.closeErrorBtn = document.getElementById('close-error');
+        this.closeSuccessBtn = document.getElementById('close-success');
         
-        // App URL elements (simplified - no share button)
+        // App URL elements
         this.getUrlBtn = document.getElementById('get-app-url');
         this.copyUrlBtn = document.getElementById('copy-app-url');
         this.urlDisplay = document.getElementById('url-display');
     }
 
     setupEventListeners() {
-        // Scanner controls
-        this.startBtn.addEventListener('click', () => this.startScanner());
-        this.stopBtn.addEventListener('click', () => this.stopScanner());
+        // Authentication event listeners
+        this.loginForm?.addEventListener('submit', (e) => this.handleLogin(e));
+        this.logoutBtn?.addEventListener('click', () => this.handleLogout());
+        this.togglePasswordBtn?.addEventListener('click', () => this.togglePassword());
         
-        // Manual search
-        this.searchBtn.addEventListener('click', () => this.searchManualBarcode());
-        this.manualInput.addEventListener('keypress', (e) => {
+        // Scanner controls (only if elements exist)
+        this.startBtn?.addEventListener('click', () => this.startScanner());
+        this.stopBtn?.addEventListener('click', () => this.stopScanner());
+        
+        // Manual search (only if elements exist)
+        this.searchBtn?.addEventListener('click', () => this.searchManualBarcode());
+        this.manualInput?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.searchManualBarcode();
             }
         });
 
-        // Close buttons
-        this.closeResultBtn.addEventListener('click', () => this.hideResults());
-        this.closeErrorBtn.addEventListener('click', () => this.hideError());
+        // Close buttons (only if elements exist)
+        this.closeResultBtn?.addEventListener('click', () => this.hideResults());
+        this.closeErrorBtn?.addEventListener('click', () => this.hideError());
+        this.closeSuccessBtn?.addEventListener('click', () => this.hideSuccess());
         
-        // App URL functionality (simplified)
-        this.getUrlBtn.addEventListener('click', () => this.getAppUrl());
-        this.copyUrlBtn.addEventListener('click', () => this.copyAppUrl());
-
-        // Auto-focus manual input when page loads
-        this.manualInput.focus();
+        // App URL functionality (only if elements exist)
+        this.getUrlBtn?.addEventListener('click', () => this.getAppUrl());
+        this.copyUrlBtn?.addEventListener('click', () => this.copyAppUrl());
     }
 
-    async startScanner() {
+    async checkAuthStatus() {
         try {
-            // Hide any existing results when starting camera
+            const response = await fetch('/api/auth-status');
+            const data = await response.json();
+            
+            if (data.authenticated) {
+                this.showAppInterface(data.username);
+            } else {
+                this.showLoginForm();
+            }
+        } catch (error) {
+            console.error('Auth status check failed:', error);
+            this.showLoginForm();
+        }
+    }
+
+    async handleLogin(event) {
+        event.preventDefault();
+        
+        const username = this.usernameInput.value.trim();
+        const password = this.passwordInput.value;
+        
+        if (!username || !password) {
+            this.showError('يرجى إدخال اسم المستخدم وكلمة المرور');
+            return;
+        }
+
+        try {
+            // Show loading state
+            this.loginBtn.disabled = true;
+            this.loginBtn.innerHTML = '<span class="btn-icon">⏳</span>جاري تسجيل الدخول...';
+            
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                this.showSuccess(data.message);
+                setTimeout(() => {
+                    this.showAppInterface(data.username);
+                }, 1000);
+            } else {
+                throw new Error(data.detail || 'فشل في تسجيل الدخول');
+            }
+
+        } catch (error) {
+            console.error('Login error:', error);
+            this.showError(error.message || 'خطأ في تسجيل الدخول');
+        } finally {
+            // Reset button
+            this.loginBtn.disabled = false;
+            this.loginBtn.innerHTML = '<span class="btn-icon">🔓</span>تسجيل الدخول';
+        }
+    }
+
+    async handleLogout() {
+        try {
+            const response = await fetch('/api/logout', {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                this.showSuccess(data.message);
+                setTimeout(() => {
+                    this.showLoginForm();
+                    // Reset form
+                    if (this.loginForm) {
+                        this.loginForm.reset();
+                    }
+                }, 1000);
+            } else {
+                throw new Error(data.detail || 'فشل في تسجيل الخروج');
+            }
+
+        } catch (error) {
+            console.error('Logout error:', error);
+            this.showError(error.message || 'خطأ في تسجيل الخروج');
+        }
+    }
+
+    togglePassword() {
+        const type = this.passwordInput.type === 'password' ? 'text' : 'password';
+        this.passwordInput.type = type;
+        this.togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🙈';
+    }
+
+    showLoginForm() {
+        this.isAuthenticated = false;
+        this.loginContainer?.classList.remove('hidden');
+        this.appInterface?.classList.add('hidden');
+        
+        // Focus username input
+        setTimeout(() => {
+            this.usernameInput?.focus();
+        }, 100);
+    }
+
+    showAppInterface(username = '') {
+        this.isAuthenticated = true;
+        this.loginContainer?.classList.add('hidden');
+        this.appInterface?.classList.remove('hidden');
+        
+        // Update welcome message
+        if (this.welcomeMessage && username) {
+            this.welcomeMessage.textContent = `مرحباً، ${username}`;
+        }
+        
+        // Focus manual input when showing app
+        setTimeout(() => {
+            this.manualInput?.focus();
+        }, 100);
+    }
+
+    // Scanner functionality (same as before, but with auth checks)
+    async startScanner() {
+        if (!this.isAuthenticated) {
+            this.showError('يرجى تسجيل الدخول أولاً');
+            return;
+        }
+
+        try {
             this.hideResults();
             this.hideError();
             
             this.showStatus('جاري تشغيل الكاميرا...');
+            this.scannerContainer?.classList.remove('hidden');
             
-            // Show scanner container
-            this.scannerContainer.classList.remove('hidden');
-            
-            // Initialize scanner
             this.html5QrCode = new Html5Qrcode("qr-reader");
             
-            // Get cameras
             const cameras = await Html5Qrcode.getCameras();
             if (cameras.length === 0) {
                 throw new Error('لا توجد كاميرات متاحة');
             }
 
-            // Use back camera if available, otherwise use first camera
             const cameraId = cameras.find(camera => 
                 camera.label.toLowerCase().includes('back') || 
                 camera.label.toLowerCase().includes('rear')
             )?.id || cameras[0].id;
 
-            // Scanner configuration - Simple working config
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
                 aspectRatio: 1.0
             };
 
-            // Start scanning
             await this.html5QrCode.start(
                 cameraId,
                 config,
@@ -130,7 +265,7 @@ class PriceScanner {
         } catch (error) {
             console.error('Scanner error:', error);
             this.showError(`خطأ في الكاميرا: ${error.message}`);
-            this.scannerContainer.classList.add('hidden');
+            this.scannerContainer?.classList.add('hidden');
         }
     }
 
@@ -142,7 +277,7 @@ class PriceScanner {
             }
             
             this.isScanning = false;
-            this.scannerContainer.classList.add('hidden');
+            this.scannerContainer?.classList.add('hidden');
             this.updateScannerControls();
             
         } catch (error) {
@@ -151,7 +286,6 @@ class PriceScanner {
     }
 
     async onScanSuccess(decodedText) {
-        // Prevent rapid repeated scans
         const now = Date.now();
         if (now - this.lastScanTime < this.scanCooldown) {
             return;
@@ -161,26 +295,27 @@ class PriceScanner {
         console.log('Scanned barcode:', decodedText);
         this.showStatus(`تم المسح: ${decodedText}`);
         
-        // Auto-hide scanner after successful scan
         await this.stopScanner();
-        
-        // Search for product
         this.searchProduct(decodedText);
     }
 
     onScanError(error) {
-        // Ignore common scanning errors (they're normal)
         if (!error.includes('No QR code found')) {
             console.log('Scan error:', error);
         }
     }
 
     async searchManualBarcode() {
-        const barcode = this.manualInput.value.trim();
+        if (!this.isAuthenticated) {
+            this.showError('يرجى تسجيل الدخول أولاً');
+            return;
+        }
+
+        const barcode = this.manualInput?.value.trim();
         
         if (!barcode) {
             this.showError('يرجى إدخال رقم الباركود');
-            this.manualInput.focus();
+            this.manualInput?.focus();
             return;
         }
 
@@ -190,16 +325,17 @@ class PriceScanner {
 
     async searchProduct(barcode) {
         try {
-            // Show loading
             this.showLoading();
             this.hideError();
             this.hideResults();
 
-            // Make API request
             const response = await fetch(`/api/price/${encodeURIComponent(barcode)}`);
             
             if (!response.ok) {
-                if (response.status === 404) {
+                if (response.status === 401) {
+                    this.showLoginForm();
+                    throw new Error('انتهت صلاحية جلسة تسجيل الدخول');
+                } else if (response.status === 404) {
                     throw new Error('المنتج غير موجود');
                 } else {
                     throw new Error(`خطأ في الخادم: ${response.status}`);
@@ -218,77 +354,104 @@ class PriceScanner {
     }
 
     displayProduct(product) {
-        // Update product info
+        if (!this.productName) return;
+
         this.productName.textContent = this.escapeHtml(product.product_name);
         this.productPrice.textContent = `${product.price.toFixed(2)} ${product.currency}`;
         this.productDescription.textContent = this.escapeHtml(product.description || 'لا يوجد وصف متاح');
         this.productBarcode.textContent = `الباركود: ${this.escapeHtml(product.barcode)}`;
 
-        // Show results
-        this.resultsSection.classList.remove('hidden');
+        this.resultsSection?.classList.remove('hidden');
 
-        // Clear manual input
-        this.manualInput.value = '';
+        if (this.manualInput) {
+            this.manualInput.value = '';
+        }
         
         console.log('Product displayed:', product);
     }
 
     updateScannerControls() {
         if (this.isScanning) {
-            this.startBtn.classList.add('hidden');
-            this.stopBtn.classList.remove('hidden');
+            this.startBtn?.classList.add('hidden');
+            this.stopBtn?.classList.remove('hidden');
         } else {
-            this.startBtn.classList.remove('hidden');
-            this.stopBtn.classList.add('hidden');
+            this.startBtn?.classList.remove('hidden');
+            this.stopBtn?.classList.add('hidden');
         }
     }
 
     showStatus(message) {
-        this.scannerStatus.textContent = this.escapeHtml(message);
+        if (this.scannerStatus) {
+            this.scannerStatus.textContent = this.escapeHtml(message);
+        }
     }
 
     showLoading() {
-        this.loading.classList.remove('hidden');
+        this.loading?.classList.remove('hidden');
     }
 
     hideLoading() {
-        this.loading.classList.add('hidden');
+        this.loading?.classList.add('hidden');
     }
 
     showError(message) {
-        this.errorText.textContent = this.escapeHtml(message);
-        this.errorMessage.classList.remove('hidden');
-        
-        // Auto-hide error after 5 seconds
-        setTimeout(() => {
-            this.hideError();
-        }, 5000);
+        if (this.errorText && this.errorMessage) {
+            this.errorText.textContent = this.escapeHtml(message);
+            this.errorMessage.classList.remove('hidden');
+            
+            setTimeout(() => {
+                this.hideError();
+            }, 5000);
+        }
     }
 
     hideError() {
-        this.errorMessage.classList.add('hidden');
+        this.errorMessage?.classList.add('hidden');
+    }
+
+    showSuccess(message) {
+        if (this.successText && this.successMessage) {
+            this.successText.textContent = this.escapeHtml(message);
+            this.successMessage.classList.remove('hidden');
+            
+            setTimeout(() => {
+                this.hideSuccess();
+            }, 3000);
+        }
+    }
+
+    hideSuccess() {
+        this.successMessage?.classList.add('hidden');
     }
 
     hideResults() {
-        this.resultsSection.classList.add('hidden');
+        this.resultsSection?.classList.add('hidden');
     }
 
     async getAppUrl() {
+        if (!this.isAuthenticated) {
+            this.showError('يرجى تسجيل الدخول أولاً');
+            return;
+        }
+
         try {
             this.getUrlBtn.disabled = true;
             this.getUrlBtn.innerHTML = '<span class="btn-icon">⏳</span>جاري التحميل...';
             
-            // Call the app-url endpoint
             const response = await fetch('/api/app-url');
             
             if (!response.ok) {
-                throw new Error(`خطأ في الخادم: ${response.status}`);
+                if (response.status === 401) {
+                    this.showLoginForm();
+                    throw new Error('انتهت صلاحية جلسة تسجيل الدخول');
+                } else {
+                    throw new Error(`خطأ في الخادم: ${response.status}`);
+                }
             }
             
             const data = await response.json();
             this.appUrl = data.url;
             
-            // Display the URL
             this.displayAppUrl(this.appUrl);
             
         } catch (error) {
@@ -301,11 +464,12 @@ class PriceScanner {
     }
 
     displayAppUrl(url) {
-        this.urlDisplay.innerHTML = `<div class="url-text">${this.escapeHtml(url)}</div>`;
-        this.urlDisplay.classList.add('has-url');
+        if (this.urlDisplay) {
+            this.urlDisplay.innerHTML = `<div class="url-text">${this.escapeHtml(url)}</div>`;
+            this.urlDisplay.classList.add('has-url');
+        }
         
-        // Show copy button only (share button removed)
-        this.copyUrlBtn.classList.remove('hidden');
+        this.copyUrlBtn?.classList.remove('hidden');
     }
 
     async copyAppUrl() {
@@ -314,10 +478,9 @@ class PriceScanner {
         try {
             await navigator.clipboard.writeText(this.appUrl);
             
-            // Visual feedback
             const originalText = this.copyUrlBtn.innerHTML;
             this.copyUrlBtn.innerHTML = '<span class="btn-icon">✅</span>تم النسخ!';
-            this.copyUrlBtn.style.background = 'var(--success-color)';
+            this.copyUrlBtn.style.background = '#065f46';
             
             setTimeout(() => {
                 this.copyUrlBtn.innerHTML = originalText;
@@ -339,7 +502,7 @@ class PriceScanner {
 
 // Initialize scanner when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing Price Scanner...');
+    console.log('Initializing Price Scanner with Authentication...');
     window.scanner = new PriceScanner();
 });
 
