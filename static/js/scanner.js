@@ -395,3 +395,160 @@ document.addEventListener('visibilitychange', () => {
         }
     }
 });
+
+/**
+ * Logout Debug and Test Script
+ * Add this to any page to test logout functionality
+ */
+
+// Debug function to test logout
+function debugLogout() {
+    console.log('=== LOGOUT DEBUG TEST ===');
+    
+    // 1. Check if logout handler exists
+    console.log('Logout Handler:', window.logoutHandler);
+    
+    // 2. Check if logout buttons exist
+    const logoutButtons = document.querySelectorAll('#logout-btn, .logout-btn, [data-action="logout"]');
+    console.log('Found logout buttons:', logoutButtons.length);
+    logoutButtons.forEach((btn, index) => {
+        console.log(`Button ${index}:`, btn);
+    });
+    
+    // 3. Check authentication status
+    fetch('/api/auth-status')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Auth Status:', data);
+        })
+        .catch(error => {
+            console.error('Auth Status Error:', error);
+        });
+    
+    // 4. Test logout API directly
+    console.log('Testing direct logout API call...');
+    fetch('/api/logout', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        console.log('Logout API Response Status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Logout API Response Data:', data);
+    })
+    .catch(error => {
+        console.error('Logout API Error:', error);
+    });
+}
+
+// Auto-run debug if URL contains ?debug=logout
+if (window.location.search.includes('debug=logout')) {
+    setTimeout(debugLogout, 1000);
+}
+
+// Manual trigger function
+window.debugLogout = debugLogout;
+
+// Enhanced logout button finder
+function findAndFixLogoutButtons() {
+    console.log('Finding and fixing logout buttons...');
+    
+    const selectors = [
+        '#logout-btn',
+        '.logout-btn',
+        '[data-action="logout"]',
+        'button[onclick*="logout"]',
+        'a[href*="logout"]'
+    ];
+    
+    let foundButtons = 0;
+    
+    selectors.forEach(selector => {
+        const buttons = document.querySelectorAll(selector);
+        buttons.forEach(button => {
+            foundButtons++;
+            console.log(`Found button with selector ${selector}:`, button);
+            
+            // Remove any existing click handlers
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Add new click handler
+            newButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Logout button clicked!');
+                
+                if (window.logoutHandler && window.logoutHandler.handleLogout) {
+                    window.logoutHandler.handleLogout();
+                } else {
+                    console.warn('Logout handler not found, using fallback');
+                    LogoutHandler.triggerLogout();
+                }
+            });
+        });
+    });
+    
+    console.log(`Total logout buttons found and fixed: ${foundButtons}`);
+    return foundButtons;
+}
+
+// Auto-fix logout buttons every 2 seconds (for debugging)
+let buttonFixInterval;
+function startButtonFixer() {
+    buttonFixInterval = setInterval(() => {
+        const count = findAndFixLogoutButtons();
+        if (count > 0) {
+            console.log(`Fixed ${count} logout buttons`);
+        }
+    }, 2000);
+}
+
+function stopButtonFixer() {
+    if (buttonFixInterval) {
+        clearInterval(buttonFixInterval);
+        buttonFixInterval = null;
+    }
+}
+
+// Export functions for manual testing
+window.findAndFixLogoutButtons = findAndFixLogoutButtons;
+window.startButtonFixer = startButtonFixer;
+window.stopButtonFixer = stopButtonFixer;
+
+// Quick test function
+window.testLogout = function() {
+    console.log('Quick logout test...');
+    if (window.logoutHandler) {
+        window.logoutHandler.handleLogout();
+    } else if (window.LogoutHandler) {
+        window.LogoutHandler.triggerLogout();
+    } else {
+        console.error('No logout handler found!');
+        // Direct API call
+        fetch('/api/logout', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Direct logout result:', data);
+                if (data.success) {
+                    window.location.href = '/login';
+                }
+            })
+            .catch(error => {
+                console.error('Direct logout failed:', error);
+                window.location.href = '/login';
+            });
+    }
+};
+
+console.log('Logout debug script loaded. Available functions:');
+console.log('- debugLogout() - Run full debug test');
+console.log('- findAndFixLogoutButtons() - Find and fix logout buttons');
+console.log('- testLogout() - Quick logout test');
+console.log('- startButtonFixer() - Auto-fix buttons every 2 seconds');
+console.log('- stopButtonFixer() - Stop auto-fixer');

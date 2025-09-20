@@ -282,6 +282,74 @@ async def health_check():
         "message": message
     }
 
+@app.post("/api/logout")
+async def logout(request: Request):
+    """Handle logout - Enhanced version with better error handling"""
+    try:
+        # Log the logout attempt
+        username = request.session.get("username", "unknown")
+        print(f"Logout attempt for user: {username}")
+        
+        # Clear all session data
+        session_data = dict(request.session)
+        request.session.clear()
+        
+        print(f"Cleared session data: {session_data}")
+        
+        # Return success response
+        response_data = {
+            "success": True, 
+            "message": "تم تسجيل الخروج بنجاح",
+            "redirect_url": "/login"
+        }
+        
+        print(f"Logout successful for user: {username}")
+        return response_data
+        
+    except Exception as e:
+        print(f"Logout error: {str(e)}")
+        # Even if there's an error, we should still try to clear the session
+        try:
+            request.session.clear()
+        except:
+            pass
+            
+        # Return error but still provide redirect
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "success": False,
+                "message": f"خطأ في تسجيل الخروج: {str(e)}",
+                "redirect_url": "/login"  # Still redirect even on error
+            }
+        )
+
+@app.get("/api/auth-status")
+async def auth_status(request: Request):
+    """Check authentication status - Enhanced version"""
+    try:
+        is_authenticated = request.session.get("authenticated", False)
+        username = request.session.get("username")
+        full_name = request.session.get("full_name")
+        
+        # Log the auth check for debugging
+        print(f"Auth status check - Authenticated: {is_authenticated}, User: {username}")
+        
+        return {
+            "authenticated": is_authenticated,
+            "username": username,
+            "full_name": full_name,
+            "session_id": request.session.get("session_id", "none")  # For debugging
+        }
+    except Exception as e:
+        print(f"Auth status check error: {str(e)}")
+        return {
+            "authenticated": False,
+            "username": None,
+            "full_name": None,
+            "error": str(e)
+        }
+
 if __name__ == "__main__":
     import uvicorn
     import os
@@ -305,3 +373,4 @@ if __name__ == "__main__":
         print(f"Starting HTTP server on {HOST}:{PORT}")
         print("No SSL certificate files found - using HTTP")
         uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)
+

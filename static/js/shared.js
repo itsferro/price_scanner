@@ -187,43 +187,148 @@ class BottomNavigation {
 class LogoutHandler {
     constructor() {
         this.setupLogoutHandler();
+        // Use a more robust method to ensure logout buttons are found
+        this.retrySetup();
     }
 
     setupLogoutHandler() {
-        const logoutBtn = document.getElementById('logout-btn');
-        logoutBtn?.addEventListener('click', () => this.handleLogout());
+        this.attachLogoutEvents();
+    }
+
+    retrySetup() {
+        // Retry finding logout buttons after a short delay
+        setTimeout(() => {
+            this.attachLogoutEvents();
+        }, 500);
+        
+        // Also retry after DOM is fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    this.attachLogoutEvents();
+                }, 100);
+            });
+        }
+    }
+
+    attachLogoutEvents() {
+        // Find all logout buttons (there might be multiple across different pages)
+        const logoutButtons = document.querySelectorAll('#logout-btn, .logout-btn, [data-action="logout"]');
+        
+        logoutButtons.forEach(button => {
+            // Remove existing listeners to avoid duplicates
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            
+            // Add the event listener
+            newButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.handleLogout();
+            });
+        });
+        
+        console.log(`Logout handler attached to ${logoutButtons.length} button(s)`);
     }
 
     async handleLogout() {
         try {
-            const response = await fetch('/api/logout', {
-                method: 'POST'
+            console.log('Logout initiated...');
+            
+            // Show loading state
+            const logoutBtns = document.querySelectorAll('#logout-btn, .logout-btn, [data-action="logout"]');
+            logoutBtns.forEach(btn => {
+                btn.disabled = true;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="logout-icon">⏳</span>جاري تسجيل الخروج...';
+                btn.dataset.originalText = originalText;
             });
 
-            const data = await response.json();
+            const response = await fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin' // Ensure cookies are sent
+            });
 
-            if (response.ok && data.success) {
-                // Clear any local storage
-                localStorage.clear();
-                sessionStorage.clear();
-                
-                // Show success message briefly then redirect
-                if (window.sharedUtils) {
-                    window.sharedUtils.showSuccess(data.message);
+            console.log('Logout response status:', response.status);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Logout response:', data);
+
+                if (data.success) {
+                    // Clear any local storage
+                    try {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                    } catch (e) {
+                        console.warn('Could not clear storage:', e);
+                    }
+                    
+                    // Show success message briefly
+                    if (window.sharedUtils) {
+                        window.sharedUtils.showSuccess(data.message || 'تم تسجيل الخروج بنجاح');
+                    }
+                    
+                    // Redirect after a short delay
+                    setTimeout(() => {
+                        const redirectUrl = data.redirect_url || '/login';
+                        console.log('Redirecting to:', redirectUrl);
+                        window.location.href = redirectUrl;
+                    }, 1000);
+                } else {
+                    throw new Error(data.detail || data.message || 'فشل في تسجيل الخروج');
                 }
-                
-                setTimeout(() => {
-                    window.location.href = data.redirect_url || '/login';
-                }, 1000);
             } else {
-                throw new Error(data.detail || 'فشل في تسجيل الخروج');
+                // Even if response is not ok, try to parse it
+                let errorMessage = 'فشل في تسجيل الخروج';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorData.message || errorMessage;
+                } catch (e) {
+                    console.warn('Could not parse error response');
+                }
+                throw new Error(errorMessage);
             }
 
         } catch (error) {
             console.error('Logout error:', error);
+            
+            // Reset buttons
+            const logoutBtns = document.querySelectorAll('#logout-btn, .logout-btn, [data-action="logout"]');
+            logoutBtns.forEach(btn => {
+                btn.disabled = false;
+                if (btn.dataset.originalText) {
+                    btn.innerHTML = btn.dataset.originalText;
+                    delete btn.dataset.originalText;
+                }
+            });
+            
             if (window.sharedUtils) {
                 window.sharedUtils.showError(error.message || 'خطأ في تسجيل الخروج');
             }
+            
+            // If it's an auth error, redirect anyway
+            if (error.message.includes('401') || error.message.includes('unauthorized')) {
+                console.log('Auth error during logout, redirecting anyway...');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            }
+        }
+    }
+
+    // Method to manually trigger logout (can be called from other scripts)
+    static triggerLogout() {
+        if (window.logoutHandler) {
+            window.logoutHandler.handleLogout();
+        } else {
+            console.warn('Logout handler not initialized');
+            // Fallback - try direct logout
+            fetch('/api/logout', { method: 'POST' })
+                .then(() => window.location.href = '/login')
+                .catch(() => window.location.href = '/login');
         }
     }
 }
@@ -335,11 +440,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize cart manager
     window.cartManager = new CartManager();
     
-    // Initialize logout handler
-    window.logoutHandler = new LogoutHandler();
+    // Initialize logout handler with delay to ensure DOM is ready
+    setTimeout(() => {
+        window.logoutHandler = new LogoutHandler();
+    }, 100);
+});
+
+// Also initialize logout handler when page is fully loaded
+window.addEventListener('load', () => {
+    if (!window.logoutHandler) {
+        console.log('Initializing logout handler on window load...');
+        window.logoutHandler = new LogoutHandler();
+    }
 });
 
 // Export for use in other files
 window.SharedUtils = SharedUtils;
 window.BottomNavigation = BottomNavigation;
 window.CartManager = CartManager;
+window.LogoutHandler = LogoutHandler;
