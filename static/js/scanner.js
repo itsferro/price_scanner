@@ -1,5 +1,5 @@
 /**
- * Scanner Page JavaScript - Mobile-First Full Screen Design
+ * Scanner Page JavaScript - Mobile-First Full Screen Design with Fixed Cart Integration
  */
 
 class ScannerPage {
@@ -15,7 +15,28 @@ class ScannerPage {
         this.initializeElements();
         this.setupEventListeners();
         this.checkMobilePermissions();
-        // Removed keyboard handling temporarily to fix basic functionality
+        this.waitForCartManager();
+    }
+
+    async waitForCartManager() {
+        // Wait for shared utils to be ready
+        if (typeof window.waitForSharedUtils === 'function') {
+            await window.waitForSharedUtils();
+        }
+        
+        // Double-check cart manager is available
+        if (!window.cartManager) {
+            console.warn('Cart manager not available, creating fallback');
+            // Create a simple fallback if needed
+            window.cartManager = {
+                addProduct: () => {
+                    console.error('Cart manager not properly initialized');
+                    return false;
+                }
+            };
+        }
+        
+        console.log('Scanner page ready with cart manager:', !!window.cartManager);
     }
 
     checkMobilePermissions() {
@@ -23,7 +44,7 @@ class ScannerPage {
         const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
         
         if (isMobile && location.protocol !== 'https:') {
-            window.sharedUtils.showError('يتطلب الوصول للكاميرا استخدام HTTPS على الأجهزة المحمولة');
+            window.sharedUtils?.showError('يتطلب الوصول للكاميرا استخدام HTTPS على الأجهزة المحمولة');
             return false;
         }
         return true;
@@ -84,8 +105,9 @@ class ScannerPage {
         this.quantityMinusBtn?.addEventListener('click', () => this.adjustQuantity(-1));
         this.quantityPlusBtn?.addEventListener('click', () => this.adjustQuantity(1));
         this.quantityInput?.addEventListener('change', () => this.validateQuantity());
+        this.quantityInput?.addEventListener('blur', () => this.validateQuantity());
         
-        // Add to cart
+        // Add to cart - Enhanced with better error handling
         this.addToCartBtn?.addEventListener('click', () => this.addToCart());
 
         // Focus manual input initially
@@ -94,11 +116,9 @@ class ScannerPage {
         }, 100);
     }
 
-    // Removed keyboard handling for now - will add back once basic layout is stable
-
     async startScanner() {
         try {
-            window.sharedUtils.hideError();
+            window.sharedUtils?.hideError();
             this.hideProductResult();
             
             this.showStatus('جاري تشغيل الكاميرا...');
@@ -146,7 +166,7 @@ class ScannerPage {
 
         } catch (error) {
             console.error('Scanner error:', error);
-            window.sharedUtils.showError(`خطأ في الكاميرا: ${error.message}`);
+            window.sharedUtils?.showError(`خطأ في الكاميرا: ${error.message}`);
             this.exitFullScreenMode();
         }
     }
@@ -197,7 +217,7 @@ class ScannerPage {
             
         } catch (error) {
             console.error('Switch camera error:', error);
-            window.sharedUtils.showError('فشل في تبديل الكاميرا');
+            window.sharedUtils?.showError('فشل في تبديل الكاميرا');
         }
     }
 
@@ -232,7 +252,7 @@ class ScannerPage {
         const barcode = this.manualInput?.value.trim();
         
         if (!barcode) {
-            window.sharedUtils.showError('يرجى إدخال رقم الباركود');
+            window.sharedUtils?.showError('يرجى إدخال رقم الباركود');
             this.manualInput?.focus();
             return;
         }
@@ -243,11 +263,11 @@ class ScannerPage {
 
     async searchProduct(barcode) {
         try {
-            window.sharedUtils.showLoading();
-            window.sharedUtils.hideError();
+            window.sharedUtils?.showLoading();
+            window.sharedUtils?.hideError();
             this.hideProductResult();
 
-            const response = await window.sharedUtils.apiCall(`/api/price/${encodeURIComponent(barcode)}`);
+            const response = await window.sharedUtils?.apiCall(`/api/price/${encodeURIComponent(barcode)}`);
             
             if (!response) return; // Auth redirect handled by apiCall
             
@@ -264,9 +284,9 @@ class ScannerPage {
 
         } catch (error) {
             console.error('Search error:', error);
-            window.sharedUtils.showError(error.message);
+            window.sharedUtils?.showError(error.message);
         } finally {
-            window.sharedUtils.hideLoading();
+            window.sharedUtils?.hideLoading();
         }
     }
 
@@ -275,10 +295,10 @@ class ScannerPage {
         
         if (!this.productName) return;
 
-        this.productName.textContent = window.sharedUtils.escapeHtml(product.product_name);
+        this.productName.textContent = window.sharedUtils?.escapeHtml(product.product_name) || product.product_name;
         this.productPrice.textContent = `${product.price.toFixed(2)} ${product.currency}`;
-        this.productDescription.textContent = window.sharedUtils.escapeHtml(product.description || 'لا يوجد وصف متاح');
-        this.productBarcode.textContent = `الباركود: ${window.sharedUtils.escapeHtml(product.barcode)}`;
+        this.productDescription.textContent = window.sharedUtils?.escapeHtml(product.description || 'لا يوجد وصف متاح') || (product.description || 'لا يوجد وصف متاح');
+        this.productBarcode.textContent = `الباركود: ${window.sharedUtils?.escapeHtml(product.barcode) || product.barcode}`;
 
         // Reset quantity to 1
         if (this.quantityInput) {
@@ -316,23 +336,82 @@ class ScannerPage {
         this.quantityInput.value = value;
     }
 
-    addToCart() {
-        if (!this.currentProduct) return;
+    async addToCart() {
+        console.log('Add to cart clicked');
         
-        const quantity = parseInt(this.quantityInput?.value) || 1;
-        
-        const success = window.cartManager.addProduct(this.currentProduct, quantity);
-        
-        if (success) {
-            window.sharedUtils.showSuccess(`تم إضافة ${quantity} ${this.currentProduct.product_name} إلى السلة`);
-            this.hideProductResult();
+        if (!this.currentProduct) {
+            console.error('No current product to add');
+            window.sharedUtils?.showError('لا يوجد منتج محدد للإضافة');
+            return;
+        }
+
+        // Wait for cart manager if not ready
+        if (!window.cartManager) {
+            console.log('Cart manager not ready, waiting...');
+            try {
+                await window.waitForSharedUtils();
+            } catch (error) {
+                console.error('Failed to wait for cart manager:', error);
+            }
+        }
+
+        if (!window.cartManager) {
+            console.error('Cart manager still not available');
+            window.sharedUtils?.showError('نظام السلة غير متاح حالياً');
+            return;
+        }
+
+        try {
+            const quantity = parseInt(this.quantityInput?.value) || 1;
             
-            // Focus manual input for next scan
-            setTimeout(() => {
-                this.manualInput?.focus();
-            }, 100);
-        } else {
-            window.sharedUtils.showError('فشل في إضافة المنتج إلى السلة');
+            // Validate quantity
+            if (quantity < 1 || quantity > 999) {
+                window.sharedUtils?.showError('الكمية يجب أن تكون بين 1 و 999');
+                return;
+            }
+
+            console.log('Adding to cart:', {
+                product: this.currentProduct,
+                quantity: quantity
+            });
+
+            // Disable button during operation
+            if (this.addToCartBtn) {
+                this.addToCartBtn.disabled = true;
+                const originalText = this.addToCartBtn.innerHTML;
+                this.addToCartBtn.innerHTML = '<span class="btn-icon">⏳</span>جاري الإضافة...';
+                
+                // Re-enable button after operation
+                setTimeout(() => {
+                    this.addToCartBtn.disabled = false;
+                    this.addToCartBtn.innerHTML = originalText;
+                }, 1000);
+            }
+
+            const success = window.cartManager.addProduct(this.currentProduct, quantity);
+            
+            if (success) {
+                const productName = this.currentProduct.product_name || 'المنتج';
+                window.sharedUtils?.showSuccess(`تم إضافة ${quantity} ${productName} إلى السلة`);
+                this.hideProductResult();
+                
+                // Focus manual input for next scan
+                setTimeout(() => {
+                    this.manualInput?.focus();
+                }, 100);
+                
+                console.log('Product added to cart successfully');
+                
+                // Debug cart state
+                if (window.cartManager.debugCart) {
+                    window.cartManager.debugCart();
+                }
+            } else {
+                throw new Error('فشل في إضافة المنتج إلى السلة');
+            }
+        } catch (error) {
+            console.error('Add to cart error:', error);
+            window.sharedUtils?.showError('فشل في إضافة المنتج إلى السلة: ' + error.message);
         }
     }
 
@@ -369,20 +448,45 @@ class ScannerPage {
 
     showStatus(message) {
         if (this.scannerStatus) {
-            this.scannerStatus.textContent = window.sharedUtils.escapeHtml(message);
+            this.scannerStatus.textContent = window.sharedUtils?.escapeHtml(message) || message;
+        }
+    }
+
+    // Debug method for testing
+    debugAddToCart() {
+        console.log('=== ADD TO CART DEBUG ===');
+        console.log('Current product:', this.currentProduct);
+        console.log('Quantity input value:', this.quantityInput?.value);
+        console.log('Cart manager available:', !!window.cartManager);
+        console.log('Shared utils available:', !!window.sharedUtils);
+        console.log('Add to cart button:', this.addToCartBtn);
+        
+        if (window.cartManager && window.cartManager.debugCart) {
+            window.cartManager.debugCart();
         }
     }
 }
 
 // Initialize scanner page when DOM loads
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('Initializing Scanner Page...');
     
-    // Initialize bottom navigation
-    window.navigation = new BottomNavigation('scanner');
-    
-    // Initialize scanner page
-    window.scannerPage = new ScannerPage();
+    try {
+        // Wait for shared utilities to be ready
+        if (typeof window.waitForSharedUtils === 'function') {
+            await window.waitForSharedUtils();
+        }
+        
+        // Initialize bottom navigation
+        window.navigation = new BottomNavigation('scanner');
+        
+        // Initialize scanner page
+        window.scannerPage = new ScannerPage();
+        
+        console.log('Scanner page initialized successfully');
+    } catch (error) {
+        console.error('Error initializing scanner page:', error);
+    }
 });
 
 // Handle page visibility changes
@@ -396,159 +500,43 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-/**
- * Logout Debug and Test Script
- * Add this to any page to test logout functionality
- */
-
-// Debug function to test logout
-function debugLogout() {
-    console.log('=== LOGOUT DEBUG TEST ===');
+// Debug function for testing cart functionality
+window.testCartFunctionality = function() {
+    console.log('=== CART FUNCTIONALITY TEST ===');
     
-    // 1. Check if logout handler exists
-    console.log('Logout Handler:', window.logoutHandler);
-    
-    // 2. Check if logout buttons exist
-    const logoutButtons = document.querySelectorAll('#logout-btn, .logout-btn, [data-action="logout"]');
-    console.log('Found logout buttons:', logoutButtons.length);
-    logoutButtons.forEach((btn, index) => {
-        console.log(`Button ${index}:`, btn);
-    });
-    
-    // 3. Check authentication status
-    fetch('/api/auth-status')
-        .then(response => response.json())
-        .then(data => {
-            console.log('Auth Status:', data);
-        })
-        .catch(error => {
-            console.error('Auth Status Error:', error);
-        });
-    
-    // 4. Test logout API directly
-    console.log('Testing direct logout API call...');
-    fetch('/api/logout', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        console.log('Logout API Response Status:', response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log('Logout API Response Data:', data);
-    })
-    .catch(error => {
-        console.error('Logout API Error:', error);
-    });
-}
-
-// Auto-run debug if URL contains ?debug=logout
-if (window.location.search.includes('debug=logout')) {
-    setTimeout(debugLogout, 1000);
-}
-
-// Manual trigger function
-window.debugLogout = debugLogout;
-
-// Enhanced logout button finder
-function findAndFixLogoutButtons() {
-    console.log('Finding and fixing logout buttons...');
-    
-    const selectors = [
-        '#logout-btn',
-        '.logout-btn',
-        '[data-action="logout"]',
-        'button[onclick*="logout"]',
-        'a[href*="logout"]'
-    ];
-    
-    let foundButtons = 0;
-    
-    selectors.forEach(selector => {
-        const buttons = document.querySelectorAll(selector);
-        buttons.forEach(button => {
-            foundButtons++;
-            console.log(`Found button with selector ${selector}:`, button);
-            
-            // Remove any existing click handlers
-            const newButton = button.cloneNode(true);
-            button.parentNode.replaceChild(newButton, button);
-            
-            // Add new click handler
-            newButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Logout button clicked!');
-                
-                if (window.logoutHandler && window.logoutHandler.handleLogout) {
-                    window.logoutHandler.handleLogout();
-                } else {
-                    console.warn('Logout handler not found, using fallback');
-                    LogoutHandler.triggerLogout();
-                }
-            });
-        });
-    });
-    
-    console.log(`Total logout buttons found and fixed: ${foundButtons}`);
-    return foundButtons;
-}
-
-// Auto-fix logout buttons every 2 seconds (for debugging)
-let buttonFixInterval;
-function startButtonFixer() {
-    buttonFixInterval = setInterval(() => {
-        const count = findAndFixLogoutButtons();
-        if (count > 0) {
-            console.log(`Fixed ${count} logout buttons`);
-        }
-    }, 2000);
-}
-
-function stopButtonFixer() {
-    if (buttonFixInterval) {
-        clearInterval(buttonFixInterval);
-        buttonFixInterval = null;
+    if (!window.cartManager) {
+        console.error('Cart manager not available');
+        return;
     }
-}
-
-// Export functions for manual testing
-window.findAndFixLogoutButtons = findAndFixLogoutButtons;
-window.startButtonFixer = startButtonFixer;
-window.stopButtonFixer = stopButtonFixer;
-
-// Quick test function
-window.testLogout = function() {
-    console.log('Quick logout test...');
-    if (window.logoutHandler) {
-        window.logoutHandler.handleLogout();
-    } else if (window.LogoutHandler) {
-        window.LogoutHandler.triggerLogout();
-    } else {
-        console.error('No logout handler found!');
-        // Direct API call
-        fetch('/api/logout', { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Direct logout result:', data);
-                if (data.success) {
-                    window.location.href = '/login';
-                }
-            })
-            .catch(error => {
-                console.error('Direct logout failed:', error);
-                window.location.href = '/login';
-            });
+    
+    // Test adding a mock product
+    const mockProduct = {
+        barcode: 'TEST123',
+        product_name: 'Test Product',
+        price: 10.50,
+        description: 'Test Description',
+        currency: 'USD'
+    };
+    
+    console.log('Adding mock product:', mockProduct);
+    const success = window.cartManager.addProduct(mockProduct, 2);
+    console.log('Add result:', success);
+    
+    // Debug cart state
+    if (window.cartManager.debugCart) {
+        window.cartManager.debugCart();
     }
 };
 
-console.log('Logout debug script loaded. Available functions:');
-console.log('- debugLogout() - Run full debug test');
-console.log('- findAndFixLogoutButtons() - Find and fix logout buttons');
-console.log('- testLogout() - Quick logout test');
-console.log('- startButtonFixer() - Auto-fix buttons every 2 seconds');
-console.log('- stopButtonFixer() - Stop auto-fixer');
+// Export debug function
+window.debugScannerPage = function() {
+    if (window.scannerPage && window.scannerPage.debugAddToCart) {
+        window.scannerPage.debugAddToCart();
+    } else {
+        console.error('Scanner page not available');
+    }
+};
+
+console.log('Scanner page script loaded. Debug functions available:');
+console.log('- testCartFunctionality() - Test cart with mock product');
+console.log('- debugScannerPage() - Debug current scanner state');

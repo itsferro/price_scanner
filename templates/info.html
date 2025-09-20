@@ -8,36 +8,38 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="app-container info-page">
         <!-- Error Message (Notification) -->
         <div id="error-message" class="error-notification hidden">
             <div class="error-content">
-                <span class="error-icon">⚠️</span>
+                <span class="error-icon"><i class="fas fa-exclamation-triangle"></i></span>
                 <span id="error-text" class="error-text"></span>
             </div>
-            <button id="close-error" class="error-close">×</button>
+            <button id="close-error" class="error-close"><i class="fas fa-times"></i></button>
         </div>
 
         <!-- Success Message (Notification) -->
         <div id="success-message" class="success-notification hidden">
             <div class="success-content">
-                <span class="success-icon">✅</span>
+                <span class="success-icon"><i class="fas fa-check-circle"></i></span>
                 <span id="success-text" class="success-text"></span>
             </div>
-            <button id="close-success" class="success-close">×</button>
+            <button id="close-success" class="success-close"><i class="fas fa-times"></i></button>
         </div>
 
         <!-- Header -->
         <header class="info-header">
             <div class="header-content">
                 <h1 class="app-title">
-                    <span class="icon">ℹ️</span>
+                    <span class="icon"><i class="fas fa-info-circle"></i></span>
                     المعلومات
                 </h1>
                 <button id="logout-btn" class="logout-btn">
-                    <span class="logout-icon">🚪</span>
+                    <span class="logout-icon"><i class="fas fa-sign-out-alt"></i></span>
                     خروج
                 </button>
             </div>
@@ -50,7 +52,7 @@
             <section class="info-section">
                 <div class="section-header">
                     <h2 class="section-title">
-                        <span class="section-icon">👤</span>
+                        <span class="section-icon"><i class="fas fa-user"></i></span>
                         معلومات المستخدم
                     </h2>
                 </div>
@@ -74,7 +76,7 @@
             <section class="info-section">
                 <div class="section-header">
                     <h2 class="section-title">
-                        <span class="section-icon">🌐</span>
+                        <span class="section-icon"><i class="fas fa-globe"></i></span>
                         رابط الوصول للتطبيق
                     </h2>
                     <p class="section-subtitle">شارك هذا الرابط مع الموظفين الآخرين للوصول للتطبيق</p>
@@ -82,21 +84,21 @@
                 <div class="url-section">
                     <div class="url-display" id="url-display">
                         <div class="url-placeholder">
-                            <span class="placeholder-icon">🔗</span>
+                            <span class="placeholder-icon"><i class="fas fa-link"></i></span>
                             <span class="placeholder-text">اضغط "احصل على الرابط" لعرض رابط الوصول</span>
                         </div>
                     </div>
                     <div class="url-actions">
                         <button id="get-app-url" class="btn btn-primary url-btn">
-                            <span class="btn-icon">🔗</span>
+                            <span class="btn-icon"><i class="fas fa-link"></i></span>
                             احصل على الرابط
                         </button>
                         <button id="copy-app-url" class="btn btn-accent url-btn hidden">
-                            <span class="btn-icon">📋</span>
+                            <span class="btn-icon"><i class="fas fa-copy"></i></span>
                             نسخ الرابط
                         </button>
                         <button id="share-qr-code" class="btn btn-secondary url-btn hidden">
-                            <span class="btn-icon">📱</span>
+                            <span class="btn-icon"><i class="fas fa-qrcode"></i></span>
                             رمز QR
                         </button>
                     </div>
@@ -107,7 +109,7 @@
             <section class="info-section">
                 <div class="section-header">
                     <h2 class="section-title">
-                        <span class="section-icon">⚙️</span>
+                        <span class="section-icon"><i class="fas fa-cog"></i></span>
                         معلومات النظام
                     </h2>
                 </div>
@@ -122,7 +124,7 @@
                         <div class="card-content">
                             <div class="card-label">حالة قاعدة البيانات</div>
                             <div class="card-value" id="db-status">
-                                <span class="status-indicator checking">🔄</span>
+                                <span class="status-indicator checking"><i class="fas fa-sync fa-spin"></i></span>
                                 جاري الفحص...
                             </div>
                         </div>
@@ -140,7 +142,7 @@
             <section class="info-section">
                 <div class="section-header">
                     <h2 class="section-title">
-                        <span class="section-icon">📋</span>
+                        <span class="section-icon"><i class="fas fa-list-ul"></i></span>
                         تعليمات الاستخدام
                     </h2>
                 </div>
@@ -180,25 +182,25 @@
             <section class="info-section">
                 <div class="section-header">
                     <h2 class="section-title">
-                        <span class="section-icon">💡</span>
+                        <span class="section-icon"><i class="fas fa-lightbulb"></i></span>
                         نصائح مفيدة
                     </h2>
                 </div>
                 <div class="tips-list">
                     <div class="tip-item">
-                        <span class="tip-icon">📱</span>
+                        <span class="tip-icon"><i class="fas fa-mobile-alt"></i></span>
                         <span class="tip-text">احفظ رابط التطبيق في المفضلة لسهولة الوصول</span>
                     </div>
                     <div class="tip-item">
-                        <span class="tip-icon">💡</span>
+                        <span class="tip-icon"><i class="fas fa-lightbulb"></i></span>
                         <span class="tip-text">تأكد من وجود إضاءة جيدة عند مسح الباركود</span>
                     </div>
                     <div class="tip-item">
-                        <span class="tip-icon">🔋</span>
+                        <span class="tip-icon"><i class="fas fa-battery-half"></i></span>
                         <span class="tip-text">أغلق الكاميرا عند عدم الاستخدام لتوفير البطارية</span>
                     </div>
                     <div class="tip-item">
-                        <span class="tip-icon">🔒</span>
+                        <span class="tip-icon"><i class="fas fa-lock"></i></span>
                         <span class="tip-text">تذكر تسجيل الخروج عند انتهاء العمل</span>
                     </div>
                 </div>
@@ -210,7 +212,7 @@
             <div class="modal-content qr-modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title">رمز QR للوصول السريع</h3>
-                    <button id="close-qr-modal" class="close-modal-btn">×</button>
+                    <button id="close-qr-modal" class="close-modal-btn"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="modal-body">
                     <div id="qr-code-container" class="qr-code-container">

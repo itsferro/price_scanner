@@ -50,7 +50,7 @@ class LoginPage {
         try {
             // Show loading state
             this.loginBtn.disabled = true;
-            this.loginBtn.innerHTML = '<span class="btn-icon">⏳</span>جاري تسجيل الدخول...';
+            this.loginBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-spinner fa-spin"></i></span>جاري تسجيل الدخول...';
             
             const response = await fetch('/api/login', {
                 method: 'POST',
@@ -78,14 +78,21 @@ class LoginPage {
         } finally {
             // Reset button
             this.loginBtn.disabled = false;
-            this.loginBtn.innerHTML = '<span class="btn-icon">🔓</span>تسجيل الدخول';
+            this.loginBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-unlock"></i></span>تسجيل الدخول';
         }
     }
 
     togglePassword() {
         const type = this.passwordInput.type === 'password' ? 'text' : 'password';
         this.passwordInput.type = type;
-        this.togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🙈';
+        
+        // Update icon based on password visibility
+        const icon = this.togglePasswordBtn.querySelector('i');
+        if (type === 'password') {
+            icon.className = 'fas fa-eye';
+        } else {
+            icon.className = 'fas fa-eye-slash';
+        }
     }
 
     showError(message) {

@@ -1,5 +1,5 @@
 """
-Price Scanner System - FastAPI Application with Multi-Page Support
+Price Scanner System - FastAPI Application with Multi-Page Support (Fixed)
 """
 import os
 import socket
@@ -199,91 +199,6 @@ async def login(request: Request):
 
 @app.post("/api/logout")
 async def logout(request: Request):
-    """Handle logout"""
-    try:
-        # Clear session
-        request.session.clear()
-        return {
-            "success": True, 
-            "message": "تم تسجيل الخروج بنجاح",
-            "redirect_url": "/login"
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"خطأ في تسجيل الخروج: {str(e)}"
-        )
-
-@app.get("/api/auth-status")
-async def auth_status(request: Request):
-    """Check authentication status"""
-    return {
-        "authenticated": request.session.get("authenticated", False),
-        "username": request.session.get("username"),
-        "full_name": request.session.get("full_name")
-    }
-
-@app.get("/api/price/{barcode}")
-async def get_price(barcode: str, current_user: str = Depends(get_current_user)):
-    """Get product price by barcode - requires authentication"""
-    try:
-        # Validate barcode
-        if not barcode or len(barcode.strip()) == 0:
-            raise HTTPException(status_code=400, detail="Barcode cannot be empty")
-        
-        # Clean barcode
-        clean_barcode = barcode.strip()
-        
-        # Get product from database
-        product = get_product_by_barcode(clean_barcode)
-        
-        if product is None:
-            raise HTTPException(status_code=404, detail="Product not found")
-        
-        return product
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
-
-@app.get("/api/app-url")
-async def get_app_url(current_user: str = Depends(get_current_user)):
-    """Get the application access URL - requires authentication"""
-    try:
-        # Get local IP address
-        local_ip = get_local_ip()
-        
-        # Determine protocol (HTTPS if certificates exist, HTTP otherwise)
-        protocol = "https" if (os.path.exists("cert.pem") and os.path.exists("key.pem")) else "http"
-        
-        # Construct the URL
-        app_url = f"{protocol}://{local_ip}:{PORT}"
-        
-        return {
-            "url": app_url,
-            "local_ip": local_ip,
-            "port": PORT,
-            "protocol": protocol,
-            "ssl_enabled": protocol == "https"
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get app URL: {str(e)}")
-
-@app.get("/api/health")
-async def health_check():
-    """Health check endpoint - no authentication required"""
-    is_connected, message = test_connection()
-    
-    return {
-        "status": "healthy" if is_connected else "unhealthy",
-        "database": "connected" if is_connected else "disconnected",
-        "message": message
-    }
-
-@app.post("/api/logout")
-async def logout(request: Request):
     """Handle logout - Enhanced version with better error handling"""
     try:
         # Log the logout attempt
@@ -350,6 +265,65 @@ async def auth_status(request: Request):
             "error": str(e)
         }
 
+@app.get("/api/price/{barcode}")
+async def get_price(barcode: str, current_user: str = Depends(get_current_user)):
+    """Get product price by barcode - requires authentication"""
+    try:
+        # Validate barcode
+        if not barcode or len(barcode.strip()) == 0:
+            raise HTTPException(status_code=400, detail="Barcode cannot be empty")
+        
+        # Clean barcode
+        clean_barcode = barcode.strip()
+        
+        # Get product from database
+        product = get_product_by_barcode(clean_barcode)
+        
+        if product is None:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        return product
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/api/app-url")
+async def get_app_url(current_user: str = Depends(get_current_user)):
+    """Get the application access URL - requires authentication"""
+    try:
+        # Get local IP address
+        local_ip = get_local_ip()
+        
+        # Determine protocol (HTTPS if certificates exist, HTTP otherwise)
+        protocol = "https" if (os.path.exists("cert.pem") and os.path.exists("key.pem")) else "http"
+        
+        # Construct the URL
+        app_url = f"{protocol}://{local_ip}:{PORT}"
+        
+        return {
+            "url": app_url,
+            "local_ip": local_ip,
+            "port": PORT,
+            "protocol": protocol,
+            "ssl_enabled": protocol == "https"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get app URL: {str(e)}")
+
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint - no authentication required"""
+    is_connected, message = test_connection()
+    
+    return {
+        "status": "healthy" if is_connected else "unhealthy",
+        "database": "connected" if is_connected else "disconnected",
+        "message": message
+    }
+
 if __name__ == "__main__":
     import uvicorn
     import os
@@ -373,4 +347,3 @@ if __name__ == "__main__":
         print(f"Starting HTTP server on {HOST}:{PORT}")
         print("No SSL certificate files found - using HTTP")
         uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)
-

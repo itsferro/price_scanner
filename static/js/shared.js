@@ -6,11 +6,11 @@
 
 class SharedUtils {
     constructor() {
-        this.initializeCommonElements();
+        this.initializeElements();
         this.setupCommonEventListeners();
     }
 
-    initializeCommonElements() {
+    initializeElements() {
         // Common notification elements
         this.errorMessage = document.getElementById('error-message');
         this.errorText = document.getElementById('error-text');
@@ -129,16 +129,16 @@ class BottomNavigation {
         navContainer.innerHTML = `
             <nav class="bottom-nav">
                 <a href="/scanner" class="nav-item" data-page="scanner">
-                    <span class="nav-icon">📱</span>
+                    <span class="nav-icon"><i class="fas fa-mobile-alt"></i></span>
                     <span class="nav-label">الماسح</span>
                 </a>
                 <a href="/cart" class="nav-item" data-page="cart">
-                    <span class="nav-icon">🛒</span>
+                    <span class="nav-icon"><i class="fas fa-shopping-cart"></i></span>
                     <span class="nav-label">السلة</span>
                     <span class="cart-badge hidden" id="cart-badge">0</span>
                 </a>
                 <a href="/info" class="nav-item" data-page="info">
-                    <span class="nav-icon">ℹ️</span>
+                    <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
                     <span class="nav-label">المعلومات</span>
                 </a>
             </nav>
@@ -239,7 +239,7 @@ class LogoutHandler {
             logoutBtns.forEach(btn => {
                 btn.disabled = true;
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '<span class="logout-icon">⏳</span>جاري تسجيل الخروج...';
+                btn.innerHTML = '<span class="logout-icon"><i class="fas fa-spinner fa-spin"></i></span>جاري تسجيل الخروج...';
                 btn.dataset.originalText = originalText;
             });
 
@@ -337,14 +337,25 @@ class LogoutHandler {
 
 class CartManager {
     constructor() {
+        this.storageKey = 'priceScanner_cart';
         this.cart = this.loadCart();
+        this.setupStorageListener();
         this.updateCartDisplay();
+        console.log('CartManager initialized with cart:', this.cart);
     }
 
     loadCart() {
         try {
-            const saved = localStorage.getItem('priceScanner_cart');
-            return saved ? JSON.parse(saved) : [];
+            // Check if localStorage is available
+            if (typeof(Storage) === "undefined") {
+                console.warn('localStorage not supported, using memory storage');
+                return [];
+            }
+
+            const saved = localStorage.getItem(this.storageKey);
+            const cart = saved ? JSON.parse(saved) : [];
+            console.log('Loaded cart from storage:', cart);
+            return cart;
         } catch (error) {
             console.error('Error loading cart:', error);
             return [];
@@ -353,52 +364,118 @@ class CartManager {
 
     saveCart() {
         try {
-            localStorage.setItem('priceScanner_cart', JSON.stringify(this.cart));
+            if (typeof(Storage) !== "undefined") {
+                localStorage.setItem(this.storageKey, JSON.stringify(this.cart));
+                console.log('Cart saved to storage:', this.cart);
+            }
             this.updateCartDisplay();
         } catch (error) {
             console.error('Error saving cart:', error);
         }
     }
 
-    addProduct(product, quantity = 1) {
-        const existingIndex = this.cart.findIndex(item => item.barcode === product.barcode);
-        
-        if (existingIndex >= 0) {
-            // Update existing product quantity
-            this.cart[existingIndex].quantity += quantity;
-        } else {
-            // Add new product
-            this.cart.push({
-                ...product,
-                quantity: quantity,
-                addedAt: new Date().toISOString()
+    setupStorageListener() {
+        // Listen for storage changes from other tabs/windows
+        if (typeof(Storage) !== "undefined") {
+            window.addEventListener('storage', (e) => {
+                if (e.key === this.storageKey) {
+                    this.cart = e.newValue ? JSON.parse(e.newValue) : [];
+                    this.updateCartDisplay();
+                }
             });
         }
-        
-        this.saveCart();
-        return true;
+    }
+
+    addProduct(product, quantity = 1) {
+        try {
+            // Validate inputs
+            if (!product || !product.barcode) {
+                console.error('Invalid product data:', product);
+                return false;
+            }
+
+            if (!quantity || quantity < 1) {
+                console.error('Invalid quantity:', quantity);
+                return false;
+            }
+
+            // Ensure cart is an array
+            if (!Array.isArray(this.cart)) {
+                this.cart = [];
+            }
+
+            const existingIndex = this.cart.findIndex(item => item.barcode === product.barcode);
+            
+            if (existingIndex >= 0) {
+                // Update existing product quantity
+                this.cart[existingIndex].quantity += quantity;
+                console.log(`Updated existing product ${product.barcode}, new quantity: ${this.cart[existingIndex].quantity}`);
+            } else {
+                // Add new product
+                const cartItem = {
+                    ...product,
+                    quantity: quantity,
+                    addedAt: new Date().toISOString()
+                };
+                this.cart.push(cartItem);
+                console.log('Added new product to cart:', cartItem);
+            }
+            
+            this.saveCart();
+            return true;
+        } catch (error) {
+            console.error('Error adding product to cart:', error);
+            return false;
+        }
     }
 
     removeProduct(barcode) {
-        this.cart = this.cart.filter(item => item.barcode !== barcode);
-        this.saveCart();
+        try {
+            const initialLength = this.cart.length;
+            this.cart = this.cart.filter(item => item.barcode !== barcode);
+            
+            if (this.cart.length < initialLength) {
+                console.log(`Removed product ${barcode} from cart`);
+                this.saveCart();
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error removing product from cart:', error);
+            return false;
+        }
     }
 
     updateQuantity(barcode, quantity) {
-        const index = this.cart.findIndex(item => item.barcode === barcode);
-        if (index >= 0) {
-            if (quantity <= 0) {
-                this.removeProduct(barcode);
-            } else {
-                this.cart[index].quantity = quantity;
-                this.saveCart();
+        try {
+            const index = this.cart.findIndex(item => item.barcode === barcode);
+            if (index >= 0) {
+                if (quantity <= 0) {
+                    return this.removeProduct(barcode);
+                } else {
+                    this.cart[index].quantity = quantity;
+                    console.log(`Updated quantity for ${barcode} to ${quantity}`);
+                    this.saveCart();
+                    return true;
+                }
             }
+            return false;
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            return false;
         }
     }
 
     clearCart() {
-        this.cart = [];
-        this.saveCart();
+        try {
+            this.cart = [];
+            this.saveCart();
+            console.log('Cart cleared');
+            return true;
+        } catch (error) {
+            console.error('Error clearing cart:', error);
+            return false;
+        }
     }
 
     getCart() {
@@ -406,44 +483,94 @@ class CartManager {
     }
 
     getCartCount() {
-        return this.cart.reduce((total, item) => total + item.quantity, 0);
+        try {
+            return this.cart.reduce((total, item) => total + (item.quantity || 0), 0);
+        } catch (error) {
+            console.error('Error calculating cart count:', error);
+            return 0;
+        }
     }
 
     getCartTotal() {
-        return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        try {
+            return this.cart.reduce((total, item) => {
+                const price = parseFloat(item.price) || 0;
+                const quantity = parseInt(item.quantity) || 0;
+                return total + (price * quantity);
+            }, 0);
+        } catch (error) {
+            console.error('Error calculating cart total:', error);
+            return 0;
+        }
     }
 
     updateCartDisplay() {
-        const count = this.getCartCount();
-        
-        // Update navigation badge
-        if (window.navigation) {
-            window.navigation.updateCartBadge(count);
-        }
+        try {
+            const count = this.getCartCount();
+            
+            // Update navigation badge
+            if (window.navigation) {
+                window.navigation.updateCartBadge(count);
+            }
 
-        // Dispatch event for other components
-        document.dispatchEvent(new CustomEvent('cartUpdated', {
-            detail: { count, total: this.getCartTotal(), cart: this.getCart() }
-        }));
+            // Dispatch event for other components
+            const event = new CustomEvent('cartUpdated', {
+                detail: { 
+                    count: count, 
+                    total: this.getCartTotal(), 
+                    cart: this.getCart() 
+                }
+            });
+            document.dispatchEvent(event);
+            
+            console.log(`Cart updated - Count: ${count}, Total: ${this.getCartTotal()}`);
+        } catch (error) {
+            console.error('Error updating cart display:', error);
+        }
+    }
+
+    // Debug method
+    debugCart() {
+        console.log('=== CART DEBUG ===');
+        console.log('Cart items:', this.cart);
+        console.log('Cart count:', this.getCartCount());
+        console.log('Cart total:', this.getCartTotal());
+        console.log('Storage key:', this.storageKey);
+        console.log('localStorage value:', localStorage.getItem(this.storageKey));
     }
 }
 
 // ==================== INITIALIZATION ====================
 
+// Global initialization flag
+window.sharedUtilsReady = false;
+
 // Initialize shared utilities when DOM loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing shared utilities...');
     
-    // Initialize shared utilities
-    window.sharedUtils = new SharedUtils();
-    
-    // Initialize cart manager
-    window.cartManager = new CartManager();
-    
-    // Initialize logout handler with delay to ensure DOM is ready
-    setTimeout(() => {
-        window.logoutHandler = new LogoutHandler();
-    }, 100);
+    try {
+        // Initialize shared utilities
+        window.sharedUtils = new SharedUtils();
+        
+        // Initialize cart manager
+        window.cartManager = new CartManager();
+        
+        // Set ready flag
+        window.sharedUtilsReady = true;
+        
+        // Dispatch ready event
+        document.dispatchEvent(new CustomEvent('sharedUtilsReady'));
+        
+        // Initialize logout handler with delay to ensure DOM is ready
+        setTimeout(() => {
+            window.logoutHandler = new LogoutHandler();
+        }, 100);
+        
+        console.log('Shared utilities initialized successfully');
+    } catch (error) {
+        console.error('Error initializing shared utilities:', error);
+    }
 });
 
 // Also initialize logout handler when page is fully loaded
@@ -453,6 +580,19 @@ window.addEventListener('load', () => {
         window.logoutHandler = new LogoutHandler();
     }
 });
+
+// Utility function to wait for shared utils to be ready
+window.waitForSharedUtils = function() {
+    return new Promise((resolve) => {
+        if (window.sharedUtilsReady && window.cartManager) {
+            resolve();
+        } else {
+            document.addEventListener('sharedUtilsReady', () => {
+                resolve();
+            }, { once: true });
+        }
+    });
+};
 
 // Export for use in other files
 window.SharedUtils = SharedUtils;
