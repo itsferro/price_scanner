@@ -1,6 +1,6 @@
 /**
  * Shared Navigation and Utilities for Price Scanner System
- * Updated to handle products without description field
+ * Updated to handle products without description field and fixed cart badge logic
  */
 
 // ==================== SHARED UTILITIES ====================
@@ -109,11 +109,18 @@ class SharedUtils {
 
 // ==================== BOTTOM NAVIGATION ====================
 
+/**
+ * Fixed Bottom Navigation Class - Always Show Cart Badge with True Count
+ */
+
 class BottomNavigation {
     constructor(currentPage) {
         this.currentPage = currentPage;
         this.initializeNavigation();
         this.setupEventListeners();
+        
+        // Initialize badge immediately with current cart count
+        this.initializeCartBadge();
     }
 
     initializeNavigation() {
@@ -137,7 +144,7 @@ class BottomNavigation {
                 <a href="/cart" class="nav-item" data-page="cart">
                     <span class="nav-icon"><i class="fas fa-shopping-cart"></i></span>
                     <span class="nav-label">السلة</span>
-                    <span class="cart-badge hidden" id="cart-badge">0</span>
+                    <span class="cart-badge" id="cart-badge">0</span>
                 </a>
                 <a href="/info" class="nav-item" data-page="info">
                     <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
@@ -171,15 +178,42 @@ class BottomNavigation {
         });
     }
 
+    initializeCartBadge() {
+        // Wait for cart manager to be ready, then update badge
+        const updateBadgeWhenReady = () => {
+            if (window.cartManager) {
+                const count = window.cartManager.getCartCount();
+                this.updateCartBadge(count);
+                console.log('Navigation initialized with cart count:', count);
+            } else {
+                // Retry after a short delay
+                setTimeout(updateBadgeWhenReady, 100);
+            }
+        };
+        
+        updateBadgeWhenReady();
+    }
+
     updateCartBadge(count) {
         const cartBadge = document.getElementById('cart-badge');
         if (cartBadge) {
-            if (count > 0) {
-                cartBadge.textContent = count > 99 ? '99+' : count.toString();
-                cartBadge.classList.remove('hidden');
+            // ALWAYS show the actual count - never reset or hide
+            cartBadge.textContent = count > 99 ? '99+' : count.toString();
+            
+            // Update visual styling based on count
+            cartBadge.classList.remove('cart-empty', 'cart-has-items');
+            
+            if (count === 0) {
+                cartBadge.classList.add('cart-empty');
             } else {
-                cartBadge.classList.add('hidden');
+                cartBadge.classList.add('cart-has-items');
             }
+            
+            // Badge is ALWAYS visible - no hiding logic whatsoever
+            cartBadge.classList.remove('hidden');
+            cartBadge.style.display = 'flex'; // Ensure it's always displayed
+            
+            console.log(`Cart badge updated: ${count} items, classes: ${cartBadge.className}`);
         }
     }
 }
@@ -337,18 +371,25 @@ class LogoutHandler {
 
 // ==================== CART MANAGEMENT ====================
 
+/**
+ * Fixed Cart Manager - Always Update Badge with True Count
+ */
+
 class CartManager {
     constructor() {
         this.storageKey = 'priceScanner_cart';
         this.cart = this.loadCart();
         this.setupStorageListener();
+        
+        // Always update display on initialization
         this.updateCartDisplay();
+        
         console.log('CartManager initialized with cart:', this.cart);
+        console.log('Initial cart count:', this.getCartCount());
     }
 
     loadCart() {
         try {
-            // Check if localStorage is available
             if (typeof(Storage) === "undefined") {
                 console.warn('localStorage not supported, using memory storage');
                 return [];
@@ -370,6 +411,8 @@ class CartManager {
                 localStorage.setItem(this.storageKey, JSON.stringify(this.cart));
                 console.log('Cart saved to storage:', this.cart);
             }
+            
+            // ALWAYS update display after saving
             this.updateCartDisplay();
         } catch (error) {
             console.error('Error saving cart:', error);
@@ -377,12 +420,12 @@ class CartManager {
     }
 
     setupStorageListener() {
-        // Listen for storage changes from other tabs/windows
         if (typeof(Storage) !== "undefined") {
             window.addEventListener('storage', (e) => {
                 if (e.key === this.storageKey) {
                     this.cart = e.newValue ? JSON.parse(e.newValue) : [];
                     this.updateCartDisplay();
+                    console.log('Cart updated from storage event:', this.cart);
                 }
             });
         }
@@ -390,7 +433,6 @@ class CartManager {
 
     addProduct(product, quantity = 1) {
         try {
-            // Validate inputs
             if (!product || !product.barcode) {
                 console.error('Invalid product data:', product);
                 return false;
@@ -401,7 +443,6 @@ class CartManager {
                 return false;
             }
 
-            // Ensure cart is an array
             if (!Array.isArray(this.cart)) {
                 this.cart = [];
             }
@@ -409,11 +450,9 @@ class CartManager {
             const existingIndex = this.cart.findIndex(item => item.barcode === product.barcode);
             
             if (existingIndex >= 0) {
-                // Update existing product quantity
                 this.cart[existingIndex].quantity += quantity;
                 console.log(`Updated existing product ${product.barcode}, new quantity: ${this.cart[existingIndex].quantity}`);
             } else {
-                // Add new product - ensure it has all necessary fields
                 const cartItem = {
                     barcode: product.barcode,
                     product_name: product.product_name || 'Unknown Product',
@@ -427,7 +466,7 @@ class CartManager {
                 console.log('Added new product to cart:', cartItem);
             }
             
-            this.saveCart();
+            this.saveCart(); // This will call updateCartDisplay()
             return true;
         } catch (error) {
             console.error('Error adding product to cart:', error);
@@ -442,7 +481,7 @@ class CartManager {
             
             if (this.cart.length < initialLength) {
                 console.log(`Removed product ${barcode} from cart`);
-                this.saveCart();
+                this.saveCart(); // This will call updateCartDisplay()
                 return true;
             }
             return false;
@@ -461,7 +500,7 @@ class CartManager {
                 } else {
                     this.cart[index].quantity = quantity;
                     console.log(`Updated quantity for ${barcode} to ${quantity}`);
-                    this.saveCart();
+                    this.saveCart(); // This will call updateCartDisplay()
                     return true;
                 }
             }
@@ -475,8 +514,8 @@ class CartManager {
     clearCart() {
         try {
             this.cart = [];
-            this.saveCart();
-            console.log('Cart cleared');
+            this.saveCart(); // This will call updateCartDisplay()
+            console.log('Cart cleared - badge should show 0');
             return true;
         } catch (error) {
             console.error('Error clearing cart:', error);
@@ -490,7 +529,8 @@ class CartManager {
 
     getCartCount() {
         try {
-            return this.cart.reduce((total, item) => total + (item.quantity || 0), 0);
+            const count = this.cart.reduce((total, item) => total + (item.quantity || 0), 0);
+            return count;
         } catch (error) {
             console.error('Error calculating cart count:', error);
             return 0;
@@ -514,9 +554,29 @@ class CartManager {
         try {
             const count = this.getCartCount();
             
-            // Update navigation badge
+            console.log(`Updating cart display - Count: ${count}`);
+            
+            // ALWAYS update navigation badge with true count
             if (window.navigation) {
                 window.navigation.updateCartBadge(count);
+            } else {
+                console.warn('Navigation not available yet, will retry...');
+                // Retry after navigation is ready
+                setTimeout(() => {
+                    if (window.navigation) {
+                        window.navigation.updateCartBadge(count);
+                    }
+                }, 100);
+            }
+
+            // Update cart status for tooltip
+            const cartNavItem = document.querySelector('.nav-item[data-page="cart"]');
+            if (cartNavItem) {
+                if (count === 0) {
+                    cartNavItem.setAttribute('data-cart-status', 'السلة فارغة');
+                } else {
+                    cartNavItem.setAttribute('data-cart-status', `${count} عنصر في السلة`);
+                }
             }
 
             // Dispatch event for other components
@@ -529,9 +589,29 @@ class CartManager {
             });
             document.dispatchEvent(event);
             
-            console.log(`Cart updated - Count: ${count}, Total: ${this.getCartTotal()}`);
+            console.log(`Cart display updated - Count: ${count}, Total: ${this.getCartTotal()}`);
         } catch (error) {
             console.error('Error updating cart display:', error);
+        }
+    }
+
+    // Method to force badge update (useful for debugging)
+    refreshBadge() {
+        const count = this.getCartCount();
+        console.log('Force refreshing badge with count:', count);
+        
+        if (window.navigation) {
+            window.navigation.updateCartBadge(count);
+        }
+        
+        // Also update badge directly if navigation method fails
+        const cartBadge = document.getElementById('cart-badge');
+        if (cartBadge) {
+            cartBadge.textContent = count > 99 ? '99+' : count.toString();
+            cartBadge.classList.remove('cart-empty', 'cart-has-items');
+            cartBadge.classList.add(count === 0 ? 'cart-empty' : 'cart-has-items');
+            cartBadge.classList.remove('hidden');
+            cartBadge.style.display = 'flex';
         }
     }
 
@@ -543,23 +623,34 @@ class CartManager {
         console.log('Cart total:', this.getCartTotal());
         console.log('Storage key:', this.storageKey);
         console.log('localStorage value:', localStorage.getItem(this.storageKey));
+        
+        const cartBadge = document.getElementById('cart-badge');
+        if (cartBadge) {
+            console.log('Cart badge element:', cartBadge);
+            console.log('Cart badge text:', cartBadge.textContent);
+            console.log('Cart badge classes:', cartBadge.className);
+            console.log('Cart badge display style:', cartBadge.style.display);
+        }
+        
+        // Force refresh badge
+        this.refreshBadge();
     }
 }
 
-// ==================== INITIALIZATION ====================
+// ==================== INITIALIZATION WITH PROPER SEQUENCING ====================
 
 // Global initialization flag
 window.sharedUtilsReady = false;
 
-// Initialize shared utilities when DOM loads
+// Enhanced initialization to ensure proper order
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing shared utilities...');
+    console.log('Initializing shared utilities with cart badge fix...');
     
     try {
-        // Initialize shared utilities
+        // Initialize shared utilities first
         window.sharedUtils = new SharedUtils();
         
-        // Initialize cart manager
+        // Initialize cart manager second
         window.cartManager = new CartManager();
         
         // Set ready flag
@@ -568,19 +659,35 @@ document.addEventListener('DOMContentLoaded', () => {
         // Dispatch ready event
         document.dispatchEvent(new CustomEvent('sharedUtilsReady'));
         
-        // Initialize logout handler with delay to ensure DOM is ready
+        // Initialize logout handler
         setTimeout(() => {
             window.logoutHandler = new LogoutHandler();
         }, 100);
         
         console.log('Shared utilities initialized successfully');
+        
+        // Debug cart state
+        setTimeout(() => {
+            if (window.cartManager) {
+                console.log('Post-initialization cart debug:');
+                window.cartManager.debugCart();
+            }
+        }, 500);
+        
     } catch (error) {
         console.error('Error initializing shared utilities:', error);
     }
 });
 
-// Also initialize logout handler when page is fully loaded
+// Page-specific navigation initialization
 window.addEventListener('load', () => {
+    // Ensure cart badge is updated on every page load
+    if (window.cartManager && window.navigation) {
+        const count = window.cartManager.getCartCount();
+        window.navigation.updateCartBadge(count);
+        console.log('Page load: Updated cart badge with count:', count);
+    }
+    
     if (!window.logoutHandler) {
         console.log('Initializing logout handler on window load...');
         window.logoutHandler = new LogoutHandler();
@@ -598,6 +705,24 @@ window.waitForSharedUtils = function() {
             }, { once: true });
         }
     });
+};
+
+// Global function to force cart badge refresh (for debugging)
+window.refreshCartBadge = function() {
+    if (window.cartManager) {
+        window.cartManager.refreshBadge();
+    } else {
+        console.error('Cart manager not available');
+    }
+};
+
+// Global function to debug cart state
+window.debugCartState = function() {
+    if (window.cartManager) {
+        window.cartManager.debugCart();
+    } else {
+        console.error('Cart manager not available');
+    }
 };
 
 // Export for use in other files

@@ -1,6 +1,6 @@
 /**
  * Cart Page JavaScript - Cart Management and Proforma Invoice
- * Updated to remove description references and add stock display
+ * Updated to remove description references, add stock display, and preserve cart badge
  */
 
 class CartPage {
@@ -8,6 +8,9 @@ class CartPage {
         this.initializeElements();
         this.setupEventListeners();
         this.loadCartData();
+        
+        // Ensure badge shows correct count when cart page loads
+        this.ensureCorrectBadgeCount();
     }
 
     initializeElements() {
@@ -52,8 +55,12 @@ class CartPage {
             }
         });
         
-        // Listen for cart updates
-        document.addEventListener('cartUpdated', () => this.loadCartData());
+        // Listen for cart updates - but don't reset badge
+        document.addEventListener('cartUpdated', (e) => {
+            this.loadCartData();
+            // Ensure badge still shows correct count
+            this.ensureCorrectBadgeCount();
+        });
         
         // Escape key to close modal
         document.addEventListener('keydown', (e) => {
@@ -63,10 +70,33 @@ class CartPage {
         });
     }
 
+    ensureCorrectBadgeCount() {
+        // Force the badge to show the correct count
+        if (window.cartManager && window.navigation) {
+            const actualCount = window.cartManager.getCartCount();
+            window.navigation.updateCartBadge(actualCount);
+            console.log('Cart page: Ensured badge shows correct count:', actualCount);
+        }
+        
+        // Also ensure badge is visible
+        const cartBadge = document.getElementById('cart-badge');
+        if (cartBadge) {
+            cartBadge.classList.remove('hidden');
+            cartBadge.style.display = 'flex';
+        }
+    }
+
     loadCartData() {
+        if (!window.cartManager) {
+            console.warn('Cart manager not available');
+            return;
+        }
+        
         const cart = window.cartManager.getCart();
         const count = window.cartManager.getCartCount();
         const total = window.cartManager.getCartTotal();
+        
+        console.log('Loading cart data:', { count, total, cartLength: cart.length });
         
         this.updateSummary(count, total);
         
@@ -75,6 +105,9 @@ class CartPage {
         } else {
             this.showCartItems(cart);
         }
+        
+        // Always ensure badge shows correct count after loading data
+        this.ensureCorrectBadgeCount();
     }
 
     updateSummary(count, total) {
@@ -91,6 +124,9 @@ class CartPage {
         this.emptyCart?.classList.remove('hidden');
         this.cartItems?.classList.add('hidden');
         this.cartActions?.classList.add('hidden');
+        
+        // Even when cart is empty, ensure badge shows 0
+        this.ensureCorrectBadgeCount();
     }
 
     showCartItems(cart) {
@@ -99,6 +135,9 @@ class CartPage {
         this.cartActions?.classList.remove('hidden');
         
         this.renderCartItems(cart);
+        
+        // Ensure badge shows correct count when items are visible
+        this.ensureCorrectBadgeCount();
     }
 
     renderCartItems(cart) {
@@ -119,7 +158,7 @@ class CartPage {
         
         const itemTotal = (item.price * item.quantity).toFixed(2);
         
-        // Display stock if available, otherwise show stock info was removed
+        // Display stock if available
         const stockDisplay = item.stock_qty !== undefined ? 
             `<div class="item-stock">المخزون: ${item.stock_qty} قطعة</div>` : 
             '';
@@ -209,13 +248,31 @@ class CartPage {
     }
 
     updateItemQuantity(barcode, quantity) {
-        window.cartManager.updateQuantity(barcode, quantity);
-        window.sharedUtils.showSuccess(`تم تحديث الكمية`);
+        console.log('Updating item quantity:', barcode, quantity);
+        
+        if (window.cartManager) {
+            window.cartManager.updateQuantity(barcode, quantity);
+            window.sharedUtils.showSuccess(`تم تحديث الكمية`);
+            
+            // Ensure badge is updated after quantity change
+            setTimeout(() => {
+                this.ensureCorrectBadgeCount();
+            }, 100);
+        }
     }
 
     removeItem(barcode, productName) {
-        window.cartManager.removeProduct(barcode);
-        window.sharedUtils.showSuccess(`تم حذف ${productName} من السلة`);
+        console.log('Removing item:', barcode, productName);
+        
+        if (window.cartManager) {
+            window.cartManager.removeProduct(barcode);
+            window.sharedUtils.showSuccess(`تم حذف ${productName} من السلة`);
+            
+            // Ensure badge is updated after item removal
+            setTimeout(() => {
+                this.ensureCorrectBadgeCount();
+            }, 100);
+        }
     }
 
     showClearCartModal() {
@@ -231,21 +288,28 @@ class CartPage {
     }
 
     confirmClearCart() {
-        window.cartManager.clearCart();
-        this.hideClearCartModal();
-        window.sharedUtils.showSuccess('تم مسح جميع العناصر من السلة');
+        console.log('Clearing cart from cart page');
+        
+        if (window.cartManager) {
+            window.cartManager.clearCart();
+            this.hideClearCartModal();
+            window.sharedUtils.showSuccess('تم مسح جميع العناصر من السلة');
+            
+            // Ensure badge shows 0 after clearing
+            setTimeout(() => {
+                this.ensureCorrectBadgeCount();
+            }, 100);
+        }
     }
 
     printInvoice() {
-        const cart = window.cartManager.getCart();
+        const cart = window.cartManager?.getCart() || [];
         if (cart.length === 0) {
             window.sharedUtils.showError('السلة فارغة - لا يمكن طباعة فاتورة');
             return;
         }
         
         this.preparePrintData(cart);
-        
-        // Use window.print() to open print dialog
         window.print();
     }
 
@@ -281,8 +345,8 @@ class CartPage {
         }
         
         // Update totals
-        const totalCount = window.cartManager.getCartCount();
-        const totalPrice = window.cartManager.getCartTotal();
+        const totalCount = window.cartManager?.getCartCount() || 0;
+        const totalPrice = window.cartManager?.getCartTotal() || 0;
         
         if (this.printTotalItems) {
             this.printTotalItems.textContent = totalCount.toString();
@@ -296,11 +360,33 @@ class CartPage {
 
 // Initialize cart page when DOM loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing Cart Page...');
+    console.log('Initializing Cart Page with badge preservation...');
     
-    // Initialize bottom navigation
-    window.navigation = new BottomNavigation('cart');
+    // Wait for shared utilities to be ready
+    const initCartPage = () => {
+        if (window.cartManager && window.navigation) {
+            // Initialize bottom navigation
+            window.navigation = new BottomNavigation('cart');
+            
+            // Initialize cart page
+            window.cartPage = new CartPage();
+            
+            console.log('Cart page initialized successfully');
+        } else {
+            // Retry if cart manager not ready
+            setTimeout(initCartPage, 100);
+        }
+    };
     
-    // Initialize cart page
-    window.cartPage = new CartPage();
+    // Start initialization
+    initCartPage();
+});
+
+// Force badge refresh when page becomes visible
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && window.cartPage) {
+        setTimeout(() => {
+            window.cartPage.ensureCorrectBadgeCount();
+        }, 100);
+    }
 });

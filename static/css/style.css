@@ -1339,6 +1339,7 @@ body {
     transform: translateX(-50%);
     width: 100%;
     max-width: var(--max-width);
+    height: var(--nav-height);
     background: var(--bg-primary);
     border-top: 1px solid var(--border-light);
     z-index: 200;
@@ -2366,4 +2367,317 @@ body {
 .quantity-btn:focus-visible {
     outline: 3px solid var(--primary);
     outline-offset: 2px;
+}
+
+/* ==================== UPDATED CART BADGE STYLES ==================== */
+
+/* Base cart badge - always visible */
+.cart-badge {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 12px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    border: 1px solid transparent;
+    
+    /* Always visible - no hidden state */
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Empty cart state - subtle appearance */
+.cart-badge.cart-empty {
+    background: var(--gray-400);
+    color: var(--gray-600);
+    border-color: var(--gray-300);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Cart has items - prominent appearance */
+.cart-badge.cart-has-items {
+    background: var(--error);
+    color: var(--text-inverse);
+    border-color: var(--error);
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+    animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+/* Subtle pulse animation for items in cart */
+@keyframes subtle-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+}
+
+/* Hover effects for navigation items with cart badge */
+.nav-item:hover .cart-badge.cart-empty {
+    background: var(--gray-500);
+    color: var(--gray-100);
+    transform: scale(1.1);
+}
+
+.nav-item:hover .cart-badge.cart-has-items {
+    background: #dc2626; /* Darker red on hover */
+    transform: scale(1.1);
+    box-shadow: 0 3px 6px rgba(220, 38, 38, 0.4);
+}
+
+/* Active nav item styling for cart badge */
+.nav-item.active .cart-badge.cart-empty {
+    background: var(--primary-light);
+    color: var(--text-inverse);
+    border-color: var(--primary);
+}
+
+.nav-item.active .cart-badge.cart-has-items {
+    background: var(--error);
+    color: var(--text-inverse);
+    border-color: var(--error);
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.4);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .cart-badge.cart-empty {
+        background: #808080;
+        color: #ffffff;
+        border: 2px solid #404040;
+    }
+    
+    .cart-badge.cart-has-items {
+        background: #ff0000;
+        color: #ffffff;
+        border: 2px solid #cc0000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .cart-badge.cart-has-items {
+        animation: none;
+    }
+    
+    .cart-badge {
+        transition: none;
+    }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+    .cart-badge {
+        top: 3px;
+        right: 6px;
+        min-width: 16px;
+        height: 16px;
+        font-size: 9px;
+        padding: 2px 5px;
+    }
+}
+
+/* ==================== CART STATUS INDICATOR TOOLTIPS ==================== */
+
+/* Optional: Add tooltip-like styling for better UX */
+.nav-item[data-page="cart"] {
+    position: relative;
+}
+
+.nav-item[data-page="cart"]:hover::after {
+    content: attr(data-cart-status);
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gray-800);
+    color: var(--text-inverse);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(5px); }
+    to { opacity: 0.9; transform: translateX(-50%) translateY(0); }
+}
+
+/* ==================== UPDATED CART BADGE STYLES ==================== */
+/* Add these CSS rules to your existing style.css file */
+
+/* Base cart badge - always visible */
+.cart-badge {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 12px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    border: 1px solid transparent;
+    
+    /* Always visible - no hidden state */
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Empty cart state - subtle appearance */
+.cart-badge.cart-empty {
+    background: var(--gray-400);
+    color: var(--gray-600);
+    border-color: var(--gray-300);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Cart has items - prominent appearance */
+.cart-badge.cart-has-items {
+    background: var(--error);
+    color: var(--text-inverse);
+    border-color: var(--error);
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+    animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+/* Subtle pulse animation for items in cart */
+@keyframes subtle-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+}
+
+/* Hover effects for navigation items with cart badge */
+.nav-item:hover .cart-badge.cart-empty {
+    background: var(--gray-500);
+    color: var(--gray-100);
+    transform: scale(1.1);
+}
+
+.nav-item:hover .cart-badge.cart-has-items {
+    background: #dc2626; /* Darker red on hover */
+    transform: scale(1.1);
+    box-shadow: 0 3px 6px rgba(220, 38, 38, 0.4);
+}
+
+/* Active nav item styling for cart badge */
+.nav-item.active .cart-badge.cart-empty {
+    background: var(--primary-light);
+    color: var(--text-inverse);
+    border-color: var(--primary);
+}
+
+.nav-item.active .cart-badge.cart-has-items {
+    background: var(--error);
+    color: var(--text-inverse);
+    border-color: var(--error);
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.4);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .cart-badge.cart-empty {
+        background: #808080;
+        color: #ffffff;
+        border: 2px solid #404040;
+    }
+    
+    .cart-badge.cart-has-items {
+        background: #ff0000;
+        color: #ffffff;
+        border: 2px solid #cc0000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .cart-badge.cart-has-items {
+        animation: none;
+    }
+    
+    .cart-badge {
+        transition: none;
+    }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+    .cart-badge {
+        top: 3px;
+        right: 6px;
+        min-width: 16px;
+        height: 16px;
+        font-size: 9px;
+        padding: 2px 5px;
+    }
+}
+
+/* ==================== CART STATUS INDICATOR TOOLTIPS (Optional) ==================== */
+
+/* Optional: Add tooltip-like styling for better UX */
+.nav-item[data-page="cart"] {
+    position: relative;
+}
+
+.nav-item[data-page="cart"]:hover::after {
+    content: attr(data-cart-status);
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gray-800);
+    color: var(--text-inverse);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(5px); }
+    to { opacity: 0.9; transform: translateX(-50%) translateY(0); }
+}
+
+/* ==================== OVERRIDE ANY EXISTING HIDDEN LOGIC ==================== */
+
+/* Force cart badge to always be visible - override any existing hidden classes */
+.cart-badge.hidden {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Ensure the badge shows even if there's conflicting CSS */
+#cart-badge {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
