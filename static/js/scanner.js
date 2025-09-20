@@ -15,6 +15,7 @@ class ScannerPage {
         this.initializeElements();
         this.setupEventListeners();
         this.checkMobilePermissions();
+        // Removed keyboard handling temporarily to fix basic functionality
     }
 
     checkMobilePermissions() {
@@ -92,6 +93,8 @@ class ScannerPage {
             this.manualInput?.focus();
         }, 100);
     }
+
+    // Removed keyboard handling for now - will add back once basic layout is stable
 
     async startScanner() {
         try {
@@ -331,23 +334,6 @@ class ScannerPage {
         } else {
             window.sharedUtils.showError('فشل في إضافة المنتج إلى السلة');
         }
-    }
-
-    showCameraControls() {
-        this.cameraControls?.classList.remove('hidden');
-        this.defaultControls?.classList.add('hidden');
-    }
-
-    showDefaultControls() {
-        this.cameraControls?.classList.add('hidden');
-        this.defaultControls?.classList.remove('hidden');
-        this.switchCameraBtn?.classList.add('hidden');
-    }
-
-    resetToEmptyState() {
-        this.scannerContainer?.classList.add('hidden');
-        this.emptyState?.classList.remove('hidden');
-        this.showDefaultControls();
     }
 
     enterFullScreenMode() {
