@@ -1,5 +1,6 @@
 /**
  * Cart Page JavaScript - Cart Management and Proforma Invoice
+ * Updated to remove description references and add stock display
  */
 
 class CartPage {
@@ -118,10 +119,15 @@ class CartPage {
         
         const itemTotal = (item.price * item.quantity).toFixed(2);
         
+        // Display stock if available, otherwise show stock info was removed
+        const stockDisplay = item.stock_qty !== undefined ? 
+            `<div class="item-stock">المخزون: ${item.stock_qty} قطعة</div>` : 
+            '';
+        
         itemDiv.innerHTML = `
             <div class="item-info">
                 <h3 class="item-name">${window.sharedUtils.escapeHtml(item.product_name)}</h3>
-                <p class="item-description">${window.sharedUtils.escapeHtml(item.description || 'لا يوجد وصف')}</p>
+                ${stockDisplay}
                 <code class="item-barcode">الباركود: ${window.sharedUtils.escapeHtml(item.barcode)}</code>
                 <div class="item-price">
                     <span class="unit-price">${item.price.toFixed(2)} ${item.currency}</span>
@@ -163,12 +169,28 @@ class CartPage {
         });
         
         plusBtn?.addEventListener('click', () => {
-            const newQuantity = Math.min(999, item.quantity + 1);
+            // Check stock limit if available
+            const maxQuantity = item.stock_qty ? Math.min(999, item.stock_qty) : 999;
+            const newQuantity = Math.min(maxQuantity, item.quantity + 1);
+            
+            if (item.stock_qty && newQuantity > item.stock_qty) {
+                window.sharedUtils.showError(`الكمية المطلوبة تتجاوز المخزون المتاح (${item.stock_qty})`);
+                return;
+            }
+            
             this.updateItemQuantity(item.barcode, newQuantity);
         });
         
         quantityInput?.addEventListener('change', (e) => {
             let newQuantity = parseInt(e.target.value) || 1;
+            
+            // Check stock limit if available
+            if (item.stock_qty && newQuantity > item.stock_qty) {
+                window.sharedUtils.showError(`الكمية المطلوبة تتجاوز المخزون المتاح (${item.stock_qty})`);
+                newQuantity = item.stock_qty;
+                e.target.value = newQuantity;
+            }
+            
             newQuantity = Math.max(1, Math.min(999, newQuantity));
             this.updateItemQuantity(item.barcode, newQuantity);
         });
@@ -176,7 +198,8 @@ class CartPage {
         quantityInput?.addEventListener('blur', (e) => {
             // Ensure valid value on blur
             let value = parseInt(e.target.value) || 1;
-            value = Math.max(1, Math.min(999, value));
+            const maxQuantity = item.stock_qty ? Math.min(999, item.stock_qty) : 999;
+            value = Math.max(1, Math.min(maxQuantity, value));
             e.target.value = value;
         });
         
@@ -281,160 +304,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize cart page
     window.cartPage = new CartPage();
 });
-
-/**
- * Logout Debug and Test Script
- * Add this to any page to test logout functionality
- */
-
-// Debug function to test logout
-function debugLogout() {
-    console.log('=== LOGOUT DEBUG TEST ===');
-    
-    // 1. Check if logout handler exists
-    console.log('Logout Handler:', window.logoutHandler);
-    
-    // 2. Check if logout buttons exist
-    const logoutButtons = document.querySelectorAll('#logout-btn, .logout-btn, [data-action="logout"]');
-    console.log('Found logout buttons:', logoutButtons.length);
-    logoutButtons.forEach((btn, index) => {
-        console.log(`Button ${index}:`, btn);
-    });
-    
-    // 3. Check authentication status
-    fetch('/api/auth-status')
-        .then(response => response.json())
-        .then(data => {
-            console.log('Auth Status:', data);
-        })
-        .catch(error => {
-            console.error('Auth Status Error:', error);
-        });
-    
-    // 4. Test logout API directly
-    console.log('Testing direct logout API call...');
-    fetch('/api/logout', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        console.log('Logout API Response Status:', response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log('Logout API Response Data:', data);
-    })
-    .catch(error => {
-        console.error('Logout API Error:', error);
-    });
-}
-
-// Auto-run debug if URL contains ?debug=logout
-if (window.location.search.includes('debug=logout')) {
-    setTimeout(debugLogout, 1000);
-}
-
-// Manual trigger function
-window.debugLogout = debugLogout;
-
-// Enhanced logout button finder
-function findAndFixLogoutButtons() {
-    console.log('Finding and fixing logout buttons...');
-    
-    const selectors = [
-        '#logout-btn',
-        '.logout-btn',
-        '[data-action="logout"]',
-        'button[onclick*="logout"]',
-        'a[href*="logout"]'
-    ];
-    
-    let foundButtons = 0;
-    
-    selectors.forEach(selector => {
-        const buttons = document.querySelectorAll(selector);
-        buttons.forEach(button => {
-            foundButtons++;
-            console.log(`Found button with selector ${selector}:`, button);
-            
-            // Remove any existing click handlers
-            const newButton = button.cloneNode(true);
-            button.parentNode.replaceChild(newButton, button);
-            
-            // Add new click handler
-            newButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Logout button clicked!');
-                
-                if (window.logoutHandler && window.logoutHandler.handleLogout) {
-                    window.logoutHandler.handleLogout();
-                } else {
-                    console.warn('Logout handler not found, using fallback');
-                    LogoutHandler.triggerLogout();
-                }
-            });
-        });
-    });
-    
-    console.log(`Total logout buttons found and fixed: ${foundButtons}`);
-    return foundButtons;
-}
-
-// Auto-fix logout buttons every 2 seconds (for debugging)
-let buttonFixInterval;
-function startButtonFixer() {
-    buttonFixInterval = setInterval(() => {
-        const count = findAndFixLogoutButtons();
-        if (count > 0) {
-            console.log(`Fixed ${count} logout buttons`);
-        }
-    }, 2000);
-}
-
-function stopButtonFixer() {
-    if (buttonFixInterval) {
-        clearInterval(buttonFixInterval);
-        buttonFixInterval = null;
-    }
-}
-
-// Export functions for manual testing
-window.findAndFixLogoutButtons = findAndFixLogoutButtons;
-window.startButtonFixer = startButtonFixer;
-window.stopButtonFixer = stopButtonFixer;
-
-// Quick test function
-window.testLogout = function() {
-    console.log('Quick logout test...');
-    if (window.logoutHandler) {
-        window.logoutHandler.handleLogout();
-    } else if (window.LogoutHandler) {
-        window.LogoutHandler.triggerLogout();
-    } else {
-        console.error('No logout handler found!');
-        // Direct API call
-        fetch('/api/logout', { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Direct logout result:', data);
-                if (data.success) {
-                    window.location.href = '/login';
-                }
-            })
-            .catch(error => {
-                console.error('Direct logout failed:', error);
-                window.location.href = '/login';
-            });
-    }
-};
-
-console.log('Logout debug script loaded. Available functions:');
-console.log('- debugLogout() - Run full debug test');
-console.log('- findAndFixLogoutButtons() - Find and fix logout buttons');
-console.log('- testLogout() - Quick logout test');
-console.log('- startButtonFixer() - Auto-fix buttons every 2 seconds');
-console.log('- stopButtonFixer() - Stop auto-fixer');

@@ -644,7 +644,7 @@ body {
     color: var(--text-inverse);
     padding: 20px;
     z-index: 102;
-    max-height: 50vh;
+    max-height: 70vh;
     overflow-y: auto;
     animation: slideDown 0.3s ease;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -2117,4 +2117,253 @@ body {
     background-color: var(--error);
     border: none;
     color: var(--text-inverse);
+}
+
+/* Additional CSS for Stock Display - Add this to your existing style.css */
+
+/* ==================== STOCK INFORMATION STYLES ==================== */
+
+/* Stock display in product result card */
+.stock-info {
+    text-align: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 16px;
+}
+
+.stock-label {
+    display: block;
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-inverse);
+}
+
+.product-stock {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-inverse);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+/* Stock status color coding */
+.product-stock.stock-high {
+    background: rgba(34, 197, 94, 0.2);
+    color: #dcfce7;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.product-stock.stock-medium {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fef3c7;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.product-stock.stock-low {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fecaca;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.product-stock.stock-out {
+    background: rgba(107, 114, 128, 0.2);
+    color: #d1d5db;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+/* Stock display in cart items */
+.item-stock {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    font-weight: 500;
+    border: 1px solid var(--border-light);
+}
+
+/* ==================== UPDATED PRODUCT INFO SECTION ==================== */
+
+/* Remove description-related styles and update product info layout */
+.product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+/* Ensure barcode display remains consistent */
+.product-barcode {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    direction: ltr;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    align-self: flex-start;
+}
+
+/* ==================== CART ITEM UPDATES ==================== */
+
+/* Remove description-related cart item styles */
+.item-info {
+    margin-bottom: 16px;
+}
+
+.item-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+/* Updated item-barcode to be more prominent since description is gone */
+.item-barcode {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    direction: ltr;
+    text-align: left;
+    border: 1px solid var(--border-light);
+    margin-bottom: 12px;
+}
+
+/* ==================== RESPONSIVE STOCK DISPLAY ==================== */
+
+/* Mobile adjustments for stock display */
+@media (max-width: 480px) {
+    .stock-info {
+        padding: 12px;
+    }
+    
+    .stock-label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+    
+    .product-stock {
+        font-size: 18px;
+    }
+    
+    .item-stock {
+        font-size: 12px;
+        padding: 3px 6px;
+    }
+}
+
+/* ==================== DISABLED BUTTON STYLES ==================== */
+
+/* Enhanced disabled button styling for out of stock items */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    background: var(--gray-400) !important;
+    border-color: var(--gray-400) !important;
+    color: var(--gray-600) !important;
+}
+
+.btn:disabled:hover {
+    background: var(--gray-400) !important;
+    border-color: var(--gray-400) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ==================== STOCK WARNINGS ==================== */
+
+/* Stock warning styles for low inventory */
+.stock-warning {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning);
+    color: var(--warning);
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stock-warning-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* ==================== PRINT STYLES UPDATES ==================== */
+
+/* Remove description from print template styles */
+@media print {
+    .print-item-description {
+        display: none !important;
+    }
+    
+    .print-item-name {
+        font-weight: bold;
+        margin-bottom: 2pt;
+    }
+    
+    .print-item-barcode {
+        font-family: 'Courier New', monospace;
+        font-size: 10pt;
+        color: #666;
+    }
+}
+
+/* ==================== ACCESSIBILITY IMPROVEMENTS ==================== */
+
+/* High contrast mode support for stock indicators */
+@media (prefers-contrast: high) {
+    .product-stock.stock-high {
+        background: #008000;
+        color: #ffffff;
+        border: 2px solid #004000;
+    }
+    
+    .product-stock.stock-medium {
+        background: #ff8c00;
+        color: #000000;
+        border: 2px solid #cc7000;
+    }
+    
+    .product-stock.stock-low {
+        background: #ff0000;
+        color: #ffffff;
+        border: 2px solid #cc0000;
+    }
+    
+    .product-stock.stock-out {
+        background: #808080;
+        color: #ffffff;
+        border: 2px solid #404040;
+    }
+}
+
+/* Focus indicators for stock-related elements */
+.quantity-input:focus {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.quantity-btn:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
 }

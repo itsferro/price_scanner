@@ -1,5 +1,6 @@
 /**
  * Shared Navigation and Utilities for Price Scanner System
+ * Updated to handle products without description field
  */
 
 // ==================== SHARED UTILITIES ====================
@@ -58,6 +59,7 @@ class SharedUtils {
 
     // Utility methods
     escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
@@ -411,9 +413,13 @@ class CartManager {
                 this.cart[existingIndex].quantity += quantity;
                 console.log(`Updated existing product ${product.barcode}, new quantity: ${this.cart[existingIndex].quantity}`);
             } else {
-                // Add new product
+                // Add new product - ensure it has all necessary fields
                 const cartItem = {
-                    ...product,
+                    barcode: product.barcode,
+                    product_name: product.product_name || 'Unknown Product',
+                    price: product.price || 0,
+                    stock_qty: product.stock_qty || 0,
+                    currency: product.currency || 'USD',
                     quantity: quantity,
                     addedAt: new Date().toISOString()
                 };

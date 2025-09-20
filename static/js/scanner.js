@@ -1,5 +1,6 @@
 /**
  * Scanner Page JavaScript - Mobile-First Full Screen Design with Fixed Cart Integration
+ * Updated to display stock quantity and remove description
  */
 
 class ScannerPage {
@@ -73,7 +74,7 @@ class ScannerPage {
         this.productResult = document.getElementById('product-result');
         this.productName = document.getElementById('product-name');
         this.productPrice = document.getElementById('product-price');
-        this.productDescription = document.getElementById('product-description');
+        this.productStock = document.getElementById('product-stock'); // New stock element
         this.productBarcode = document.getElementById('product-barcode');
         this.closeResultBtn = document.getElementById('close-result');
         
@@ -295,14 +296,50 @@ class ScannerPage {
         
         if (!this.productName) return;
 
+        // Display product information - updated to show stock instead of description
         this.productName.textContent = window.sharedUtils?.escapeHtml(product.product_name) || product.product_name;
-        this.productPrice.textContent = `${product.price.toFixed(2)} ${product.currency}`;
-        this.productDescription.textContent = window.sharedUtils?.escapeHtml(product.description || 'لا يوجد وصف متاح') || (product.description || 'لا يوجد وصف متاح');
-        this.productBarcode.textContent = `الباركود: ${window.sharedUtils?.escapeHtml(product.barcode) || product.barcode}`;
+        
+        if (this.productPrice) {
+            this.productPrice.textContent = `${product.price.toFixed(2)} ${product.currency}`;
+        }
+        
+        // Display stock information with color coding
+        if (this.productStock) {
+            const stockQty = product.stock_qty || 0;
+            this.productStock.textContent = `${stockQty} قطعة`;
+            
+            // Add stock status styling
+            this.productStock.classList.remove('stock-low', 'stock-medium', 'stock-high', 'stock-out');
+            if (stockQty === 0) {
+                this.productStock.classList.add('stock-out');
+            } else if (stockQty <= 10) {
+                this.productStock.classList.add('stock-low');
+            } else if (stockQty <= 50) {
+                this.productStock.classList.add('stock-medium');
+            } else {
+                this.productStock.classList.add('stock-high');
+            }
+        }
+        
+        if (this.productBarcode) {
+            this.productBarcode.textContent = `الباركود: ${window.sharedUtils?.escapeHtml(product.barcode) || product.barcode}`;
+        }
 
-        // Reset quantity to 1
+        // Reset quantity to 1 and limit based on stock
         if (this.quantityInput) {
             this.quantityInput.value = 1;
+            this.quantityInput.max = Math.min(999, product.stock_qty || 999);
+        }
+
+        // Disable add to cart if out of stock
+        if (this.addToCartBtn) {
+            if (product.stock_qty && product.stock_qty > 0) {
+                this.addToCartBtn.disabled = false;
+                this.addToCartBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-shopping-cart"></i></span>إضافة للسلة';
+            } else {
+                this.addToCartBtn.disabled = true;
+                this.addToCartBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-times"></i></span>غير متوفر';
+            }
         }
 
         this.productResult?.classList.remove('hidden');
@@ -324,15 +361,17 @@ class ScannerPage {
         if (!this.quantityInput) return;
         
         const currentValue = parseInt(this.quantityInput.value) || 1;
-        const newValue = Math.max(1, Math.min(999, currentValue + delta));
+        const maxStock = parseInt(this.quantityInput.max) || 999;
+        const newValue = Math.max(1, Math.min(maxStock, currentValue + delta));
         this.quantityInput.value = newValue;
     }
 
     validateQuantity() {
         if (!this.quantityInput) return;
         
+        const maxStock = parseInt(this.quantityInput.max) || 999;
         let value = parseInt(this.quantityInput.value) || 1;
-        value = Math.max(1, Math.min(999, value));
+        value = Math.max(1, Math.min(maxStock, value));
         this.quantityInput.value = value;
     }
 
@@ -342,6 +381,12 @@ class ScannerPage {
         if (!this.currentProduct) {
             console.error('No current product to add');
             window.sharedUtils?.showError('لا يوجد منتج محدد للإضافة');
+            return;
+        }
+
+        // Check if product is in stock
+        if (!this.currentProduct.stock_qty || this.currentProduct.stock_qty <= 0) {
+            window.sharedUtils?.showError('المنتج غير متوفر في المخزن');
             return;
         }
 
@@ -363,10 +408,11 @@ class ScannerPage {
 
         try {
             const quantity = parseInt(this.quantityInput?.value) || 1;
+            const maxStock = this.currentProduct.stock_qty || 0;
             
-            // Validate quantity
-            if (quantity < 1 || quantity > 999) {
-                window.sharedUtils?.showError('الكمية يجب أن تكون بين 1 و 999');
+            // Validate quantity against stock
+            if (quantity < 1 || quantity > maxStock) {
+                window.sharedUtils?.showError(`الكمية يجب أن تكون بين 1 و ${maxStock}`);
                 return;
             }
 
@@ -509,12 +555,12 @@ window.testCartFunctionality = function() {
         return;
     }
     
-    // Test adding a mock product
+    // Test adding a mock product with stock
     const mockProduct = {
         barcode: 'TEST123',
         product_name: 'Test Product',
         price: 10.50,
-        description: 'Test Description',
+        stock_qty: 25,
         currency: 'USD'
     };
     
