@@ -1,19 +1,20 @@
 /**
- * Arabic Price Scanner - Professional Corporate Theme with Authentication
+ * Scanner Page JavaScript - Mobile-First Full Screen Design
  */
 
-class PriceScanner {
+class ScannerPage {
     constructor() {
         this.html5QrCode = null;
         this.isScanning = false;
         this.lastScanTime = 0;
         this.scanCooldown = 2000; // 2 seconds between scans
-        this.appUrl = null;
-        this.isAuthenticated = false;
+        this.currentProduct = null;
+        this.availableCameras = [];
+        this.currentCameraIndex = 0;
         
         this.initializeElements();
         this.setupEventListeners();
-        this.checkAuthStatus();
+        this.checkMobilePermissions();
     }
 
     checkMobilePermissions() {
@@ -21,66 +22,53 @@ class PriceScanner {
         const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
         
         if (isMobile && location.protocol !== 'https:') {
-            this.showError('يتطلب الوصول للكاميرا استخدام HTTPS على الأجهزة المحمولة');
+            window.sharedUtils.showError('يتطلب الوصول للكاميرا استخدام HTTPS على الأجهزة المحمولة');
             return false;
         }
         return true;
     }
 
     initializeElements() {
-        // Authentication elements
-        this.loginContainer = document.getElementById('login-container');
-        this.appInterface = document.getElementById('app-interface');
-        this.loginForm = document.getElementById('login-form');
-        this.usernameInput = document.getElementById('username');
-        this.passwordInput = document.getElementById('password');
-        this.loginBtn = document.getElementById('login-btn');
-        this.logoutBtn = document.getElementById('logout-btn');
-        this.togglePasswordBtn = document.getElementById('toggle-password');
-        this.welcomeMessage = document.getElementById('welcome-message');
-        
-        // Scanner elements
+        // Scanner controls
         this.startBtn = document.getElementById('start-camera');
         this.stopBtn = document.getElementById('stop-camera');
+        this.switchCameraBtn = document.getElementById('switch-camera');
         this.searchBtn = document.getElementById('search-manual');
         this.manualInput = document.getElementById('manual-barcode');
         
         // Display elements
         this.scannerContainer = document.getElementById('camera-container');
         this.scannerStatus = document.getElementById('scanner-status');
-        this.resultsSection = document.getElementById('product-result');
-        this.loading = document.getElementById('loading-state');
-        this.errorMessage = document.getElementById('error-message');
-        this.errorText = document.getElementById('error-text');
-        this.successMessage = document.getElementById('success-message');
-        this.successText = document.getElementById('success-text');
+        this.emptyState = document.getElementById('empty-state');
+        this.cameraControlsOverlay = document.getElementById('camera-controls-overlay');
         
-        // Product display elements
+        // Layout elements
+        this.scannerHeader = document.getElementById('scanner-header');
+        this.manualSearchBar = document.getElementById('manual-search-bar');
+        this.bottomNav = document.getElementById('bottom-nav');
+        
+        // Product result elements
+        this.productResult = document.getElementById('product-result');
         this.productName = document.getElementById('product-name');
         this.productPrice = document.getElementById('product-price');
         this.productDescription = document.getElementById('product-description');
         this.productBarcode = document.getElementById('product-barcode');
         this.closeResultBtn = document.getElementById('close-result');
-        this.closeErrorBtn = document.getElementById('close-error');
-        this.closeSuccessBtn = document.getElementById('close-success');
         
-        // App URL elements
-        this.getUrlBtn = document.getElementById('get-app-url');
-        this.copyUrlBtn = document.getElementById('copy-app-url');
-        this.urlDisplay = document.getElementById('url-display');
+        // Add to cart elements
+        this.quantityInput = document.getElementById('product-quantity');
+        this.quantityMinusBtn = document.getElementById('quantity-minus');
+        this.quantityPlusBtn = document.getElementById('quantity-plus');
+        this.addToCartBtn = document.getElementById('add-to-cart-btn');
     }
 
     setupEventListeners() {
-        // Authentication event listeners
-        this.loginForm?.addEventListener('submit', (e) => this.handleLogin(e));
-        this.logoutBtn?.addEventListener('click', () => this.handleLogout());
-        this.togglePasswordBtn?.addEventListener('click', () => this.togglePassword());
-        
-        // Scanner controls (only if elements exist)
+        // Scanner controls
         this.startBtn?.addEventListener('click', () => this.startScanner());
         this.stopBtn?.addEventListener('click', () => this.stopScanner());
+        this.switchCameraBtn?.addEventListener('click', () => this.switchCamera());
         
-        // Manual search (only if elements exist)
+        // Manual search
         this.searchBtn?.addEventListener('click', () => this.searchManualBarcode());
         this.manualInput?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -88,162 +76,49 @@ class PriceScanner {
             }
         });
 
-        // Close buttons (only if elements exist)
-        this.closeResultBtn?.addEventListener('click', () => this.hideResults());
-        this.closeErrorBtn?.addEventListener('click', () => this.hideError());
-        this.closeSuccessBtn?.addEventListener('click', () => this.hideSuccess());
+        // Product result
+        this.closeResultBtn?.addEventListener('click', () => this.hideProductResult());
         
-        // App URL functionality (only if elements exist)
-        this.getUrlBtn?.addEventListener('click', () => this.getAppUrl());
-        this.copyUrlBtn?.addEventListener('click', () => this.copyAppUrl());
-    }
-
-    async checkAuthStatus() {
-        try {
-            const response = await fetch('/api/auth-status');
-            const data = await response.json();
-            
-            if (data.authenticated) {
-                this.showAppInterface(data.username);
-            } else {
-                this.showLoginForm();
-            }
-        } catch (error) {
-            console.error('Auth status check failed:', error);
-            this.showLoginForm();
-        }
-    }
-
-    async handleLogin(event) {
-        event.preventDefault();
+        // Quantity controls
+        this.quantityMinusBtn?.addEventListener('click', () => this.adjustQuantity(-1));
+        this.quantityPlusBtn?.addEventListener('click', () => this.adjustQuantity(1));
+        this.quantityInput?.addEventListener('change', () => this.validateQuantity());
         
-        const username = this.usernameInput.value.trim();
-        const password = this.passwordInput.value;
-        
-        if (!username || !password) {
-            this.showError('يرجى إدخال اسم المستخدم وكلمة المرور');
-            return;
-        }
+        // Add to cart
+        this.addToCartBtn?.addEventListener('click', () => this.addToCart());
 
-        try {
-            // Show loading state
-            this.loginBtn.disabled = true;
-            this.loginBtn.innerHTML = '<span class="btn-icon">⏳</span>جاري تسجيل الدخول...';
-            
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                this.showSuccess(data.message);
-                setTimeout(() => {
-                    this.showAppInterface(data.username);
-                }, 1000);
-            } else {
-                throw new Error(data.detail || 'فشل في تسجيل الدخول');
-            }
-
-        } catch (error) {
-            console.error('Login error:', error);
-            this.showError(error.message || 'خطأ في تسجيل الدخول');
-        } finally {
-            // Reset button
-            this.loginBtn.disabled = false;
-            this.loginBtn.innerHTML = '<span class="btn-icon">🔓</span>تسجيل الدخول';
-        }
-    }
-
-    async handleLogout() {
-        try {
-            const response = await fetch('/api/logout', {
-                method: 'POST'
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                this.showSuccess(data.message);
-                setTimeout(() => {
-                    this.showLoginForm();
-                    // Reset form
-                    if (this.loginForm) {
-                        this.loginForm.reset();
-                    }
-                }, 1000);
-            } else {
-                throw new Error(data.detail || 'فشل في تسجيل الخروج');
-            }
-
-        } catch (error) {
-            console.error('Logout error:', error);
-            this.showError(error.message || 'خطأ في تسجيل الخروج');
-        }
-    }
-
-    togglePassword() {
-        const type = this.passwordInput.type === 'password' ? 'text' : 'password';
-        this.passwordInput.type = type;
-        this.togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🙈';
-    }
-
-    showLoginForm() {
-        this.isAuthenticated = false;
-        this.loginContainer?.classList.remove('hidden');
-        this.appInterface?.classList.add('hidden');
-        
-        // Focus username input
-        setTimeout(() => {
-            this.usernameInput?.focus();
-        }, 100);
-    }
-
-    showAppInterface(username = '') {
-        this.isAuthenticated = true;
-        this.loginContainer?.classList.add('hidden');
-        this.appInterface?.classList.remove('hidden');
-        
-        // Update welcome message
-        if (this.welcomeMessage && username) {
-            this.welcomeMessage.textContent = `مرحباً، ${username}`;
-        }
-        
-        // Focus manual input when showing app
+        // Focus manual input initially
         setTimeout(() => {
             this.manualInput?.focus();
         }, 100);
     }
 
-    // Scanner functionality (same as before, but with auth checks)
     async startScanner() {
-        if (!this.isAuthenticated) {
-            this.showError('يرجى تسجيل الدخول أولاً');
-            return;
-        }
-
         try {
-            this.hideResults();
-            this.hideError();
+            window.sharedUtils.hideError();
+            this.hideProductResult();
             
             this.showStatus('جاري تشغيل الكاميرا...');
-            this.scannerContainer?.classList.remove('hidden');
+            
+            // Enter full-screen camera mode
+            this.enterFullScreenMode();
             
             this.html5QrCode = new Html5Qrcode("qr-reader");
             
-            const cameras = await Html5Qrcode.getCameras();
-            if (cameras.length === 0) {
+            // Get available cameras
+            this.availableCameras = await Html5Qrcode.getCameras();
+            if (this.availableCameras.length === 0) {
                 throw new Error('لا توجد كاميرات متاحة');
             }
 
-            const cameraId = cameras.find(camera => 
+            // Use back camera by default, or first available
+            const backCamera = this.availableCameras.find(camera => 
                 camera.label.toLowerCase().includes('back') || 
                 camera.label.toLowerCase().includes('rear')
-            )?.id || cameras[0].id;
+            );
+            
+            const cameraId = backCamera?.id || this.availableCameras[0].id;
+            this.currentCameraIndex = this.availableCameras.findIndex(cam => cam.id === cameraId);
 
             const config = {
                 fps: 10,
@@ -259,13 +134,17 @@ class PriceScanner {
             );
 
             this.isScanning = true;
-            this.updateScannerControls();
             this.showStatus('وجه الكاميرا نحو الباركود');
+
+            // Enable switch camera button if multiple cameras available
+            if (this.availableCameras.length > 1) {
+                this.switchCameraBtn?.classList.remove('hidden');
+            }
 
         } catch (error) {
             console.error('Scanner error:', error);
-            this.showError(`خطأ في الكاميرا: ${error.message}`);
-            this.scannerContainer?.classList.add('hidden');
+            window.sharedUtils.showError(`خطأ في الكاميرا: ${error.message}`);
+            this.exitFullScreenMode();
         }
     }
 
@@ -277,11 +156,45 @@ class PriceScanner {
             }
             
             this.isScanning = false;
-            this.scannerContainer?.classList.add('hidden');
-            this.updateScannerControls();
+            this.exitFullScreenMode();
             
         } catch (error) {
             console.error('Stop scanner error:', error);
+            this.exitFullScreenMode();
+        }
+    }
+
+    async switchCamera() {
+        if (!this.isScanning || this.availableCameras.length <= 1) return;
+        
+        try {
+            // Stop current camera
+            await this.html5QrCode.stop();
+            
+            // Switch to next camera
+            this.currentCameraIndex = (this.currentCameraIndex + 1) % this.availableCameras.length;
+            const nextCamera = this.availableCameras[this.currentCameraIndex];
+            
+            this.showStatus('جاري تبديل الكاميرا...');
+            
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+
+            await this.html5QrCode.start(
+                nextCamera.id,
+                config,
+                (decodedText) => this.onScanSuccess(decodedText),
+                (error) => this.onScanError(error)
+            );
+            
+            this.showStatus('وجه الكاميرا نحو الباركود');
+            
+        } catch (error) {
+            console.error('Switch camera error:', error);
+            window.sharedUtils.showError('فشل في تبديل الكاميرا');
         }
     }
 
@@ -295,7 +208,14 @@ class PriceScanner {
         console.log('Scanned barcode:', decodedText);
         this.showStatus(`تم المسح: ${decodedText}`);
         
+        // Auto-stop scanner after successful scan
         await this.stopScanner();
+        
+        // Fill manual input and search
+        if (this.manualInput) {
+            this.manualInput.value = decodedText;
+        }
+        
         this.searchProduct(decodedText);
     }
 
@@ -306,15 +226,10 @@ class PriceScanner {
     }
 
     async searchManualBarcode() {
-        if (!this.isAuthenticated) {
-            this.showError('يرجى تسجيل الدخول أولاً');
-            return;
-        }
-
         const barcode = this.manualInput?.value.trim();
         
         if (!barcode) {
-            this.showError('يرجى إدخال رقم الباركود');
+            window.sharedUtils.showError('يرجى إدخال رقم الباركود');
             this.manualInput?.focus();
             return;
         }
@@ -325,17 +240,16 @@ class PriceScanner {
 
     async searchProduct(barcode) {
         try {
-            this.showLoading();
-            this.hideError();
-            this.hideResults();
+            window.sharedUtils.showLoading();
+            window.sharedUtils.hideError();
+            this.hideProductResult();
 
-            const response = await fetch(`/api/price/${encodeURIComponent(barcode)}`);
+            const response = await window.sharedUtils.apiCall(`/api/price/${encodeURIComponent(barcode)}`);
+            
+            if (!response) return; // Auth redirect handled by apiCall
             
             if (!response.ok) {
-                if (response.status === 401) {
-                    this.showLoginForm();
-                    throw new Error('انتهت صلاحية جلسة تسجيل الدخول');
-                } else if (response.status === 404) {
+                if (response.status === 404) {
                     throw new Error('المنتج غير موجود');
                 } else {
                     throw new Error(`خطأ في الخادم: ${response.status}`);
@@ -347,22 +261,30 @@ class PriceScanner {
 
         } catch (error) {
             console.error('Search error:', error);
-            this.showError(error.message);
+            window.sharedUtils.showError(error.message);
         } finally {
-            this.hideLoading();
+            window.sharedUtils.hideLoading();
         }
     }
 
     displayProduct(product) {
+        this.currentProduct = product;
+        
         if (!this.productName) return;
 
-        this.productName.textContent = this.escapeHtml(product.product_name);
+        this.productName.textContent = window.sharedUtils.escapeHtml(product.product_name);
         this.productPrice.textContent = `${product.price.toFixed(2)} ${product.currency}`;
-        this.productDescription.textContent = this.escapeHtml(product.description || 'لا يوجد وصف متاح');
-        this.productBarcode.textContent = `الباركود: ${this.escapeHtml(product.barcode)}`;
+        this.productDescription.textContent = window.sharedUtils.escapeHtml(product.description || 'لا يوجد وصف متاح');
+        this.productBarcode.textContent = `الباركود: ${window.sharedUtils.escapeHtml(product.barcode)}`;
 
-        this.resultsSection?.classList.remove('hidden');
+        // Reset quantity to 1
+        if (this.quantityInput) {
+            this.quantityInput.value = 1;
+        }
 
+        this.productResult?.classList.remove('hidden');
+
+        // Clear manual input
         if (this.manualInput) {
             this.manualInput.value = '';
         }
@@ -370,145 +292,116 @@ class PriceScanner {
         console.log('Product displayed:', product);
     }
 
-    updateScannerControls() {
-        if (this.isScanning) {
-            this.startBtn?.classList.add('hidden');
-            this.stopBtn?.classList.remove('hidden');
+    hideProductResult() {
+        this.productResult?.classList.add('hidden');
+        this.currentProduct = null;
+    }
+
+    adjustQuantity(delta) {
+        if (!this.quantityInput) return;
+        
+        const currentValue = parseInt(this.quantityInput.value) || 1;
+        const newValue = Math.max(1, Math.min(999, currentValue + delta));
+        this.quantityInput.value = newValue;
+    }
+
+    validateQuantity() {
+        if (!this.quantityInput) return;
+        
+        let value = parseInt(this.quantityInput.value) || 1;
+        value = Math.max(1, Math.min(999, value));
+        this.quantityInput.value = value;
+    }
+
+    addToCart() {
+        if (!this.currentProduct) return;
+        
+        const quantity = parseInt(this.quantityInput?.value) || 1;
+        
+        const success = window.cartManager.addProduct(this.currentProduct, quantity);
+        
+        if (success) {
+            window.sharedUtils.showSuccess(`تم إضافة ${quantity} ${this.currentProduct.product_name} إلى السلة`);
+            this.hideProductResult();
+            
+            // Focus manual input for next scan
+            setTimeout(() => {
+                this.manualInput?.focus();
+            }, 100);
         } else {
-            this.startBtn?.classList.remove('hidden');
-            this.stopBtn?.classList.add('hidden');
+            window.sharedUtils.showError('فشل في إضافة المنتج إلى السلة');
         }
+    }
+
+    showCameraControls() {
+        this.cameraControls?.classList.remove('hidden');
+        this.defaultControls?.classList.add('hidden');
+    }
+
+    showDefaultControls() {
+        this.cameraControls?.classList.add('hidden');
+        this.defaultControls?.classList.remove('hidden');
+        this.switchCameraBtn?.classList.add('hidden');
+    }
+
+    resetToEmptyState() {
+        this.scannerContainer?.classList.add('hidden');
+        this.emptyState?.classList.remove('hidden');
+        this.showDefaultControls();
+    }
+
+    enterFullScreenMode() {
+        // Hide header, navigation, and manual search
+        this.scannerHeader?.classList.add('hidden');
+        this.bottomNav?.classList.add('hidden');
+        this.manualSearchBar?.classList.add('hidden');
+        
+        // Show camera container and controls overlay
+        this.scannerContainer?.classList.remove('hidden');
+        this.cameraControlsOverlay?.classList.remove('hidden');
+        this.emptyState?.classList.add('hidden');
+        
+        // Make camera container full screen
+        this.scannerContainer?.classList.add('fullscreen-camera');
+    }
+
+    exitFullScreenMode() {
+        // Show header, navigation, and manual search
+        this.scannerHeader?.classList.remove('hidden');
+        this.bottomNav?.classList.remove('hidden');
+        this.manualSearchBar?.classList.remove('hidden');
+        
+        // Hide camera container and controls overlay
+        this.scannerContainer?.classList.add('hidden');
+        this.cameraControlsOverlay?.classList.add('hidden');
+        this.emptyState?.classList.remove('hidden');
+        
+        // Remove full screen class
+        this.scannerContainer?.classList.remove('fullscreen-camera');
+        this.switchCameraBtn?.classList.add('hidden');
     }
 
     showStatus(message) {
         if (this.scannerStatus) {
-            this.scannerStatus.textContent = this.escapeHtml(message);
+            this.scannerStatus.textContent = window.sharedUtils.escapeHtml(message);
         }
-    }
-
-    showLoading() {
-        this.loading?.classList.remove('hidden');
-    }
-
-    hideLoading() {
-        this.loading?.classList.add('hidden');
-    }
-
-    showError(message) {
-        if (this.errorText && this.errorMessage) {
-            this.errorText.textContent = this.escapeHtml(message);
-            this.errorMessage.classList.remove('hidden');
-            
-            setTimeout(() => {
-                this.hideError();
-            }, 5000);
-        }
-    }
-
-    hideError() {
-        this.errorMessage?.classList.add('hidden');
-    }
-
-    showSuccess(message) {
-        if (this.successText && this.successMessage) {
-            this.successText.textContent = this.escapeHtml(message);
-            this.successMessage.classList.remove('hidden');
-            
-            setTimeout(() => {
-                this.hideSuccess();
-            }, 3000);
-        }
-    }
-
-    hideSuccess() {
-        this.successMessage?.classList.add('hidden');
-    }
-
-    hideResults() {
-        this.resultsSection?.classList.add('hidden');
-    }
-
-    async getAppUrl() {
-        if (!this.isAuthenticated) {
-            this.showError('يرجى تسجيل الدخول أولاً');
-            return;
-        }
-
-        try {
-            this.getUrlBtn.disabled = true;
-            this.getUrlBtn.innerHTML = '<span class="btn-icon">⏳</span>جاري التحميل...';
-            
-            const response = await fetch('/api/app-url');
-            
-            if (!response.ok) {
-                if (response.status === 401) {
-                    this.showLoginForm();
-                    throw new Error('انتهت صلاحية جلسة تسجيل الدخول');
-                } else {
-                    throw new Error(`خطأ في الخادم: ${response.status}`);
-                }
-            }
-            
-            const data = await response.json();
-            this.appUrl = data.url;
-            
-            this.displayAppUrl(this.appUrl);
-            
-        } catch (error) {
-            console.error('Get app URL error:', error);
-            this.showError('خطأ في الحصول على رابط التطبيق: ' + error.message);
-        } finally {
-            this.getUrlBtn.disabled = false;
-            this.getUrlBtn.innerHTML = '<span class="btn-icon">🔗</span>احصل على الرابط';
-        }
-    }
-
-    displayAppUrl(url) {
-        if (this.urlDisplay) {
-            this.urlDisplay.innerHTML = `<div class="url-text">${this.escapeHtml(url)}</div>`;
-            this.urlDisplay.classList.add('has-url');
-        }
-        
-        this.copyUrlBtn?.classList.remove('hidden');
-    }
-
-    async copyAppUrl() {
-        if (!this.appUrl) return;
-        
-        try {
-            await navigator.clipboard.writeText(this.appUrl);
-            
-            const originalText = this.copyUrlBtn.innerHTML;
-            this.copyUrlBtn.innerHTML = '<span class="btn-icon">✅</span>تم النسخ!';
-            this.copyUrlBtn.style.background = '#065f46';
-            
-            setTimeout(() => {
-                this.copyUrlBtn.innerHTML = originalText;
-                this.copyUrlBtn.style.background = '';
-            }, 2000);
-            
-        } catch (error) {
-            console.error('Copy failed:', error);
-            this.showError('فشل في نسخ الرابط');
-        }
-    }
-
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
     }
 }
 
-// Initialize scanner when page loads
+// Initialize scanner page when DOM loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing Price Scanner with Authentication...');
-    window.scanner = new PriceScanner();
+    console.log('Initializing Scanner Page...');
+    
+    // Initialize bottom navigation
+    window.navigation = new BottomNavigation('scanner');
+    
+    // Initialize scanner page
+    window.scannerPage = new ScannerPage();
 });
 
 // Handle page visibility changes
 document.addEventListener('visibilitychange', () => {
-    if (window.scanner && window.scanner.isScanning) {
+    if (window.scannerPage && window.scannerPage.isScanning) {
         if (document.hidden) {
             console.log('Page hidden, pausing scanner');
         } else {

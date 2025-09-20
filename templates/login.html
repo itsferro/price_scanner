@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - ماسح الأسعار</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Error Message (Notification) -->
+        <div id="error-message" class="error-notification hidden">
+            <div class="error-content">
+                <span class="error-icon">⚠️</span>
+                <span id="error-text" class="error-text"></span>
+            </div>
+            <button id="close-error" class="error-close">×</button>
+        </div>
+
+        <!-- Success Message (Notification) -->
+        <div id="success-message" class="success-notification hidden">
+            <div class="success-content">
+                <span class="success-icon">✅</span>
+                <span id="success-text" class="success-text"></span>
+            </div>
+            <button id="close-success" class="success-close">×</button>
+        </div>
+
+        <!-- Login Container -->
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-icon">🔐</div>
+                    <h1 class="login-title">تسجيل الدخول</h1>
+                    <p class="login-subtitle">يرجى تسجيل الدخول للوصول إلى ماسح الأسعار</p>
+                </div>
+
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="username" class="form-label">اسم المستخدم</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username"
+                            class="form-input" 
+                            placeholder="أدخل اسم المستخدم" 
+                            required
+                            autocomplete="username"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">كلمة المرور</label>
+                        <div class="password-input-container">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password"
+                                class="form-input" 
+                                placeholder="أدخل كلمة المرور" 
+                                required
+                                autocomplete="current-password"
+                            >
+                            <button type="button" id="toggle-password" class="password-toggle">👁️</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="login-btn" class="btn btn-primary login-btn">
+                        <span class="btn-icon">🔓</span>
+                        تسجيل الدخول
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/login.js"></script>
+</body>
+</html>

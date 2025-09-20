@@ -1,5 +1,5 @@
 """
-Price Scanner System - FastAPI Application with Database Authentication
+Price Scanner System - FastAPI Application with Multi-Page Support
 """
 import os
 import socket
@@ -25,8 +25,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
 # Initialize FastAPI
 app = FastAPI(
     title="Price Scanner System",
-    version="1.0.0",
-    description="Simple barcode scanner for price checking with database authentication"
+    version="2.0.0",
+    description="Multi-page barcode scanner for price checking with cart functionality"
 )
 
 # Add session middleware
@@ -67,10 +67,16 @@ def get_current_user(request: Request):
         )
     return request.session.get("username")
 
+def require_auth(request: Request):
+    """Redirect to login if not authenticated"""
+    if not request.session.get("authenticated"):
+        return RedirectResponse(url="/login", status_code=302)
+    return None
+
 @app.on_event("startup")
 async def startup_event():
     """Test database connection on startup"""
-    print("Starting Price Scanner System with Database Authentication...")
+    print("Starting Price Scanner System v2.0 with Multi-Page Support...")
     is_connected, message = test_connection()
     if is_connected:
         print("✅ Database connection successful")
@@ -85,23 +91,67 @@ async def startup_event():
     print(f"   - Local: {protocol}://localhost:{PORT}")
     print(f"   - Network: {protocol}://{local_ip}:{PORT}")
 
+# ==================== PAGE ROUTES ====================
+
 @app.get("/", response_class=HTMLResponse)
-async def scanner_page(request: Request):
-    """Main scanner interface - requires authentication"""
-    # Check if user is authenticated
-    if not request.session.get("authenticated"):
-        # Show login page
-        return templates.TemplateResponse("index.html", {
-            "request": request, 
-            "show_login": True
-        })
+async def root(request: Request):
+    """Root redirect to appropriate page"""
+    if request.session.get("authenticated"):
+        return RedirectResponse(url="/scanner", status_code=302)
+    else:
+        return RedirectResponse(url="/login", status_code=302)
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    """Login page"""
+    # If already authenticated, redirect to scanner
+    if request.session.get("authenticated"):
+        return RedirectResponse(url="/scanner", status_code=302)
     
-    # Show scanner interface
-    return templates.TemplateResponse("index.html", {
-        "request": request, 
-        "show_login": False,
-        "username": request.session.get("username")
+    return templates.TemplateResponse("login.html", {
+        "request": request
     })
+
+@app.get("/scanner", response_class=HTMLResponse)
+async def scanner_page(request: Request):
+    """Scanner page - requires authentication"""
+    auth_redirect = require_auth(request)
+    if auth_redirect:
+        return auth_redirect
+    
+    return templates.TemplateResponse("scanner.html", {
+        "request": request,
+        "username": request.session.get("username"),
+        "full_name": request.session.get("full_name")
+    })
+
+@app.get("/cart", response_class=HTMLResponse)
+async def cart_page(request: Request):
+    """Cart page - requires authentication"""
+    auth_redirect = require_auth(request)
+    if auth_redirect:
+        return auth_redirect
+    
+    return templates.TemplateResponse("cart.html", {
+        "request": request,
+        "username": request.session.get("username"),
+        "full_name": request.session.get("full_name")
+    })
+
+@app.get("/info", response_class=HTMLResponse)
+async def info_page(request: Request):
+    """Info page - requires authentication"""
+    auth_redirect = require_auth(request)
+    if auth_redirect:
+        return auth_redirect
+    
+    return templates.TemplateResponse("info.html", {
+        "request": request,
+        "username": request.session.get("username"),
+        "full_name": request.session.get("full_name")
+    })
+
+# ==================== API ROUTES ====================
 
 @app.post("/api/login")
 async def login(request: Request):
@@ -131,7 +181,8 @@ async def login(request: Request):
                 "success": True,
                 "message": "تم تسجيل الدخول بنجاح",
                 "username": auth_result["username"],
-                "full_name": auth_result["full_name"]
+                "full_name": auth_result["full_name"],
+                "redirect_url": "/scanner"
             }
         else:
             raise HTTPException(
@@ -152,7 +203,11 @@ async def logout(request: Request):
     try:
         # Clear session
         request.session.clear()
-        return {"success": True, "message": "تم تسجيل الخروج بنجاح"}
+        return {
+            "success": True, 
+            "message": "تم تسجيل الخروج بنجاح",
+            "redirect_url": "/login"
+        }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
