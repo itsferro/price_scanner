@@ -1,5 +1,5 @@
 """
-Database connection using pyodbc with User Authentication - Simple Stock Implementation
+Database connection using pyodbc with User Authentication - Separate Stock Table Implementation
 """
 import os
 import pyodbc
@@ -16,18 +16,23 @@ DB_USE_WINDOWS_AUTH = os.getenv("DB_USE_WINDOWS_AUTH", "true").lower() == "true"
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
-# Product table and column names - SIMPLE APPROACH
-PRODUCT_TABLE = os.getenv("PRODUCT_TABLE", "Products")
-BARCODE_COLUMN = os.getenv("BARCODE_COLUMN", "Barcode")
-NAME_COLUMN = os.getenv("NAME_COLUMN", "ProductName")
-PRICE_COLUMN = os.getenv("PRICE_COLUMN", "Price")
-STOCK_COLUMN = os.getenv("STOCK_COLUMN", "qty")  # Just set a default like we do for other columns
+# Product table and column names
+PRODUCT_TABLE = os.getenv("PRODUCT_TABLE", "dbo.items")
+BARCODE_COLUMN = os.getenv("BARCODE_COLUMN", "PARCODE1")
+NAME_COLUMN = os.getenv("NAME_COLUMN", "item_name")
+PRICE_COLUMN = os.getenv("PRICE_COLUMN", "price")
+PRODUCT_ID_COLUMN = os.getenv("PRODUCT_ID_COLUMN", "id")
+
+# Stock table and column names (NEW)
+STOCK_TABLE = os.getenv("STOCK_TABLE", "dbo.quntity")
+STOCK_PRODUCT_ID_COLUMN = os.getenv("STOCK_PRODUCT_ID_COLUMN", "item_id")
+STOCK_QUANTITY_COLUMN = os.getenv("STOCK_QUANTITY_COLUMN", "qunt")
 
 # User table and column names
-USER_TABLE = os.getenv("USER_TABLE", "users")
-USER_USERNAME_COLUMN = os.getenv("USER_USERNAME_COLUMN", "username")
+USER_TABLE = os.getenv("USER_TABLE", "dbo.employee")
+USER_USERNAME_COLUMN = os.getenv("USER_USERNAME_COLUMN", "user_name")
 USER_PASSWORD_COLUMN = os.getenv("USER_PASSWORD_COLUMN", "password")
-USER_FULLNAME_COLUMN = os.getenv("USER_FULLNAME_COLUMN", "full_name")
+USER_FULLNAME_COLUMN = os.getenv("USER_FULLNAME_COLUMN", "name")
 
 def get_connection_string():
     """Build ODBC connection string"""
@@ -150,22 +155,36 @@ def get_user_by_username(username: str):
         return None
 
 def get_product_by_barcode(barcode: str):
-    """Get product by barcode - SIMPLE APPROACH like other columns"""
+    """Get product by barcode with stock from separate table"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Simple query just like we do for name, price, barcode
+        # Query with LEFT JOIN to get latest stock record
+        # Fixed: Handle N/A logic in Python, not SQL to avoid data type conversion errors
         query = f"""
         SELECT 
-            {NAME_COLUMN} as product_name,
-            {PRICE_COLUMN} as price,
-            {STOCK_COLUMN} as stock_qty,
-            {BARCODE_COLUMN} as barcode
-        FROM {PRODUCT_TABLE}
-        WHERE {BARCODE_COLUMN} = ?
+            p.{NAME_COLUMN} as product_name,
+            p.{PRICE_COLUMN} as price,
+            p.{BARCODE_COLUMN} as barcode,
+            p.{PRODUCT_ID_COLUMN} as product_id,
+            latest_stock.{STOCK_QUANTITY_COLUMN} as stock_qty
+        FROM {PRODUCT_TABLE} p
+        LEFT JOIN (
+            SELECT 
+                s1.{STOCK_PRODUCT_ID_COLUMN},
+                s1.{STOCK_QUANTITY_COLUMN}
+            FROM {STOCK_TABLE} s1
+            WHERE s1.id = (
+                SELECT MAX(s2.id) 
+                FROM {STOCK_TABLE} s2 
+                WHERE s2.{STOCK_PRODUCT_ID_COLUMN} = s1.{STOCK_PRODUCT_ID_COLUMN}
+            )
+        ) latest_stock ON p.{PRODUCT_ID_COLUMN} = latest_stock.{STOCK_PRODUCT_ID_COLUMN}
+        WHERE p.{BARCODE_COLUMN} = ?
         """
         
+        print(f"Executing query: {query}")  # Debug logging
         cursor.execute(query, (barcode,))
         result = cursor.fetchone()
         
@@ -173,41 +192,73 @@ def get_product_by_barcode(barcode: str):
         conn.close()
         
         if result:
+            # Handle stock quantity - convert to appropriate format
+            raw_stock_qty = result[4]
+            
+            # If no stock record exists (None/NULL from LEFT JOIN), show N/A
+            if raw_stock_qty is None:
+                stock_qty = 'N/A'
+            else:
+                try:
+                    # Convert to float, then to int if it's a whole number
+                    stock_float = float(raw_stock_qty)
+                    if stock_float == int(stock_float):
+                        stock_qty = int(stock_float)
+                    else:
+                        stock_qty = round(stock_float, 3)  # Round to 3 decimal places
+                except (ValueError, TypeError):
+                    stock_qty = 'N/A'
+            
             return {
                 "product_name": result[0] if result[0] else "Unknown Product",
                 "price": float(result[1]) if result[1] else 0.0,
-                "stock_qty": int(result[2]) if result[2] is not None else 0,
-                "barcode": result[3] if result[3] else barcode,
+                "stock_qty": stock_qty,
+                "barcode": result[2] if result[2] else barcode,
                 "currency": "USD"
             }
         else:
             return None
             
     except Exception as e:
-        # If database connection fails, return mock data for testing
-        print(f"Database query failed, using mock data: {str(e)}")
+        # Log the error for debugging - NO MORE MOCK DATA
+        print(f"Database query failed: {str(e)}")
+        print(f"Failed to get product for barcode: {barcode}")
         
-        mock_products = {
-            "123456789012": {
-                "product_name": "Coca Cola 330ml",
-                "price": 2.50,
-                "stock_qty": 150,
-                "barcode": "123456789012",
-                "currency": "USD"
-            },
-            "234567890123": {
-                "product_name": "Samsung Galaxy Charger",
-                "price": 25.99,
-                "stock_qty": 45,
-                "barcode": "234567890123",
-                "currency": "USD"
-            }
-        }
+        # Return None to indicate failure - no mock data
+        return None
+
+def test_stock_query():
+    """Test function to verify stock query is working correctly"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
         
-        if barcode in mock_products:
-            return mock_products[barcode]
-        else:
-            return None
+        # Test query to see stock table structure
+        test_query = f"""
+        SELECT TOP 5
+            p.{NAME_COLUMN} as product_name,
+            p.{BARCODE_COLUMN} as barcode,
+            s.{STOCK_QUANTITY_COLUMN} as stock_qty,
+            s.id as stock_id
+        FROM {PRODUCT_TABLE} p
+        LEFT JOIN {STOCK_TABLE} s ON p.{PRODUCT_ID_COLUMN} = s.{STOCK_PRODUCT_ID_COLUMN}
+        ORDER BY p.{PRODUCT_ID_COLUMN}
+        """
+        
+        cursor.execute(test_query)
+        results = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        print("Stock query test results:")
+        for row in results:
+            print(f"Product: {row[0]}, Barcode: {row[1]}, Stock: {row[2]}, Stock ID: {row[3]}")
+            
+        return True, f"Found {len(results)} records"
+        
+    except Exception as e:
+        return False, str(e)
 
 # Compatibility function for main.py
 def get_db():
