@@ -141,7 +141,7 @@ class ScannerPage {
                 camera.label.toLowerCase().includes('rear')
             );
             
-            const cameraId = backCamera?.id || this.availableCameras[0].id;
+            const cameraId = backCamera?.id || this.availableCameras[3].id;
             this.currentCameraIndex = this.availableCameras.findIndex(cam => cam.id === cameraId);
 
             const config = {

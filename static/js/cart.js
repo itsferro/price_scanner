@@ -1,6 +1,6 @@
 /**
- * Cart Page JavaScript - Cart Management and Proforma Invoice
- * Updated to remove description references, add stock display, and preserve cart badge
+ * CART.JS - Cart Page Specific JavaScript (Production Version)
+ * Clean, focused cart management functionality
  */
 
 class CartPage {
@@ -8,9 +8,7 @@ class CartPage {
         this.initializeElements();
         this.setupEventListeners();
         this.loadCartData();
-        
-        // Ensure badge shows correct count when cart page loads
-        this.ensureCorrectBadgeCount();
+        console.log('CartPage initialized');
     }
 
     initializeElements() {
@@ -49,20 +47,20 @@ class CartPage {
         // Modal actions
         this.confirmClearBtn?.addEventListener('click', () => this.confirmClearCart());
         this.cancelClearBtn?.addEventListener('click', () => this.hideClearCartModal());
+        
+        // Modal overlay click to close
         this.clearCartModal?.addEventListener('click', (e) => {
             if (e.target === this.clearCartModal) {
                 this.hideClearCartModal();
             }
         });
         
-        // Listen for cart updates - but don't reset badge
-        document.addEventListener('cartUpdated', (e) => {
+        // Listen for cart updates from other pages
+        document.addEventListener('cartUpdated', () => {
             this.loadCartData();
-            // Ensure badge still shows correct count
-            this.ensureCorrectBadgeCount();
         });
         
-        // Escape key to close modal
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !this.clearCartModal?.classList.contains('hidden')) {
                 this.hideClearCartModal();
@@ -70,33 +68,16 @@ class CartPage {
         });
     }
 
-    ensureCorrectBadgeCount() {
-        // Force the badge to show the correct count
-        if (window.cartManager && window.navigation) {
-            const actualCount = window.cartManager.getCartCount();
-            window.navigation.updateCartBadge(actualCount);
-            console.log('Cart page: Ensured badge shows correct count:', actualCount);
-        }
-        
-        // Also ensure badge is visible
-        const cartBadge = document.getElementById('cart-badge');
-        if (cartBadge) {
-            cartBadge.classList.remove('hidden');
-            cartBadge.style.display = 'flex';
-        }
-    }
-
     loadCartData() {
         if (!window.cartManager) {
             console.warn('Cart manager not available');
+            this.showEmptyState();
             return;
         }
         
         const cart = window.cartManager.getCart();
         const count = window.cartManager.getCartCount();
         const total = window.cartManager.getCartTotal();
-        
-        console.log('Loading cart data:', { count, total, cartLength: cart.length });
         
         this.updateSummary(count, total);
         
@@ -105,9 +86,6 @@ class CartPage {
         } else {
             this.showCartItems(cart);
         }
-        
-        // Always ensure badge shows correct count after loading data
-        this.ensureCorrectBadgeCount();
     }
 
     updateSummary(count, total) {
@@ -124,9 +102,6 @@ class CartPage {
         this.emptyCart?.classList.remove('hidden');
         this.cartItems?.classList.add('hidden');
         this.cartActions?.classList.add('hidden');
-        
-        // Even when cart is empty, ensure badge shows 0
-        this.ensureCorrectBadgeCount();
     }
 
     showCartItems(cart) {
@@ -135,9 +110,6 @@ class CartPage {
         this.cartActions?.classList.remove('hidden');
         
         this.renderCartItems(cart);
-        
-        // Ensure badge shows correct count when items are visible
-        this.ensureCorrectBadgeCount();
     }
 
     renderCartItems(cart) {
@@ -158,16 +130,15 @@ class CartPage {
         
         const itemTotal = (item.price * item.quantity).toFixed(2);
         
-        // Display stock if available
-        const stockDisplay = item.stock_qty !== undefined ? 
-            `<div class="item-stock">المخزون: ${item.stock_qty} قطعة</div>` : 
-            '';
+        // Stock display
+        const stockDisplay = item.stock_qty !== undefined && item.stock_qty !== null ? 
+            `<div class="item-stock">المخزون: ${item.stock_qty} قطعة</div>` : '';
         
         itemDiv.innerHTML = `
             <div class="item-info">
-                <h3 class="item-name">${window.sharedUtils.escapeHtml(item.product_name)}</h3>
+                <h3 class="item-name">${this.escapeHtml(item.product_name)}</h3>
                 ${stockDisplay}
-                <code class="item-barcode">الباركود: ${window.sharedUtils.escapeHtml(item.barcode)}</code>
+                <code class="item-barcode">الباركود: ${this.escapeHtml(item.barcode)}</code>
                 <div class="item-price">
                     <span class="unit-price">${item.price.toFixed(2)} ${item.currency}</span>
                     <span class="price-separator">×</span>
@@ -178,12 +149,16 @@ class CartPage {
             </div>
             <div class="item-controls">
                 <div class="quantity-controls">
-                    <button class="quantity-btn minus-btn" data-action="decrease">−</button>
+                    <button class="quantity-btn minus-btn" data-action="decrease">
+                        <i class="fas fa-minus"></i>
+                    </button>
                     <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="999" data-barcode="${item.barcode}">
-                    <button class="quantity-btn plus-btn" data-action="increase">+</button>
+                    <button class="quantity-btn plus-btn" data-action="increase">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
                 <button class="remove-btn" data-barcode="${item.barcode}">
-                    <span class="btn-icon">🗑️</span>
+                    <span class="btn-icon"><i class="fas fa-trash-alt"></i></span>
                     حذف
                 </button>
             </div>
@@ -213,7 +188,7 @@ class CartPage {
             const newQuantity = Math.min(maxQuantity, item.quantity + 1);
             
             if (item.stock_qty && newQuantity > item.stock_qty) {
-                window.sharedUtils.showError(`الكمية المطلوبة تتجاوز المخزون المتاح (${item.stock_qty})`);
+                window.sharedUtils?.showError(`الكمية المطلوبة تتجاوز المخزون المتاح (${item.stock_qty})`);
                 return;
             }
             
@@ -225,7 +200,7 @@ class CartPage {
             
             // Check stock limit if available
             if (item.stock_qty && newQuantity > item.stock_qty) {
-                window.sharedUtils.showError(`الكمية المطلوبة تتجاوز المخزون المتاح (${item.stock_qty})`);
+                window.sharedUtils?.showError(`الكمية المطلوبة تتجاوز المخزون المتاح (${item.stock_qty})`);
                 newQuantity = item.stock_qty;
                 e.target.value = newQuantity;
             }
@@ -248,39 +223,22 @@ class CartPage {
     }
 
     updateItemQuantity(barcode, quantity) {
-        console.log('Updating item quantity:', barcode, quantity);
-        
         if (window.cartManager) {
             window.cartManager.updateQuantity(barcode, quantity);
-            window.sharedUtils.showSuccess(`تم تحديث الكمية`);
-            
-            // Ensure badge is updated after quantity change
-            setTimeout(() => {
-                this.ensureCorrectBadgeCount();
-            }, 100);
+            window.sharedUtils?.showSuccess('تم تحديث الكمية');
         }
     }
 
     removeItem(barcode, productName) {
-        console.log('Removing item:', barcode, productName);
-        
         if (window.cartManager) {
             window.cartManager.removeProduct(barcode);
-            window.sharedUtils.showSuccess(`تم حذف ${productName} من السلة`);
-            
-            // Ensure badge is updated after item removal
-            setTimeout(() => {
-                this.ensureCorrectBadgeCount();
-            }, 100);
+            window.sharedUtils?.showSuccess(`تم حذف ${productName} من السلة`);
         }
     }
 
     showClearCartModal() {
         this.clearCartModal?.classList.remove('hidden');
-        // Focus on cancel button for accessibility
-        setTimeout(() => {
-            this.cancelClearBtn?.focus();
-        }, 100);
+        setTimeout(() => this.cancelClearBtn?.focus(), 100);
     }
 
     hideClearCartModal() {
@@ -288,24 +246,18 @@ class CartPage {
     }
 
     confirmClearCart() {
-        console.log('Clearing cart from cart page');
-        
         if (window.cartManager) {
             window.cartManager.clearCart();
             this.hideClearCartModal();
-            window.sharedUtils.showSuccess('تم مسح جميع العناصر من السلة');
-            
-            // Ensure badge shows 0 after clearing
-            setTimeout(() => {
-                this.ensureCorrectBadgeCount();
-            }, 100);
+            window.sharedUtils?.showSuccess('تم مسح جميع العناصر من السلة');
         }
     }
 
     printInvoice() {
         const cart = window.cartManager?.getCart() || [];
+        
         if (cart.length === 0) {
-            window.sharedUtils.showError('السلة فارغة - لا يمكن طباعة فاتورة');
+            window.sharedUtils?.showError('السلة فارغة - لا يمكن طباعة فاتورة');
             return;
         }
         
@@ -332,8 +284,8 @@ class CartPage {
                 
                 row.innerHTML = `
                     <td class="item-name-cell">
-                        <div class="print-item-name">${window.sharedUtils.escapeHtml(item.product_name)}</div>
-                        <div class="print-item-barcode">${window.sharedUtils.escapeHtml(item.barcode)}</div>
+                        <div class="print-item-name">${this.escapeHtml(item.product_name)}</div>
+                        <div class="print-item-barcode">${this.escapeHtml(item.barcode)}</div>
                     </td>
                     <td class="quantity-cell">${item.quantity}</td>
                     <td class="price-cell">${item.price.toFixed(2)} ${item.currency}</td>
@@ -356,37 +308,38 @@ class CartPage {
             this.printTotalPrice.textContent = `${totalPrice.toFixed(2)} USD`;
         }
     }
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
 }
 
-// Initialize cart page when DOM loads
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing Cart Page with badge preservation...');
+// Initialize cart page when DOM loads and common utils are ready
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Cart page initializing...');
     
-    // Wait for shared utilities to be ready
-    const initCartPage = () => {
-        if (window.cartManager && window.navigation) {
-            // Initialize bottom navigation
-            window.navigation = new BottomNavigation('cart');
-            
-            // Initialize cart page
-            window.cartPage = new CartPage();
-            
-            console.log('Cart page initialized successfully');
-        } else {
-            // Retry if cart manager not ready
-            setTimeout(initCartPage, 100);
-        }
-    };
-    
-    // Start initialization
-    initCartPage();
+    try {
+        // Wait for common utilities
+        await window.waitForCommonUtils();
+        
+        // Initialize navigation and cart page
+        window.navigation = new BottomNavigation('cart');
+        window.cartPage = new CartPage();
+        
+        console.log('Cart page initialized successfully');
+        
+    } catch (error) {
+        console.error('Error initializing cart page:', error);
+        window.sharedUtils?.showError('خطأ في تحميل صفحة السلة');
+    }
 });
 
-// Force badge refresh when page becomes visible
+// Handle page visibility changes
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && window.cartPage) {
-        setTimeout(() => {
-            window.cartPage.ensureCorrectBadgeCount();
-        }, 100);
+        window.cartPage.loadCartData();
     }
 });
