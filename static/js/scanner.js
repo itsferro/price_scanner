@@ -1,6 +1,7 @@
 /**
  * Scanner Page JavaScript - Mobile-First Full Screen Design with Fixed Cart Integration
  * Updated to display stock quantity and remove description
+ * Added: Click outside product card to close it
  */
 
 class ScannerPage {
@@ -101,6 +102,15 @@ class ScannerPage {
 
         // Product result
         this.closeResultBtn?.addEventListener('click', () => this.hideProductResult());
+        
+        // Close product card when clicking outside of it
+        document.addEventListener('click', (e) => {
+            if (this.currentProduct && !this.productResult?.classList.contains('hidden')) {
+                if (!e.target.closest('#product-result')) {
+                    this.hideProductResult();
+                }
+            }
+        });
         
         // Quantity controls
         this.quantityMinusBtn?.addEventListener('click', () => this.adjustQuantity(-1));

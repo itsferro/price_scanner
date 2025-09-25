@@ -1,6 +1,6 @@
 /**
- * CART.JS - Cart Page Specific JavaScript (Production Version)
- * Clean, focused cart management functionality
+ * CART.JS - Cart Page Specific JavaScript (Updated with Scannable Barcodes)
+ * Clean, focused cart management functionality with POS-ready barcode display
  */
 
 class CartPage {
@@ -134,11 +134,29 @@ class CartPage {
         const stockDisplay = item.stock_qty !== undefined && item.stock_qty !== null ? 
             `<div class="item-stock">المخزون: ${item.stock_qty} قطعة</div>` : '';
         
+        // Generate unique ID for barcode canvas
+        const barcodeId = `barcode-${item.barcode.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now()}`;
+        
         itemDiv.innerHTML = `
             <div class="item-info">
                 <h3 class="item-name">${this.escapeHtml(item.product_name)}</h3>
                 ${stockDisplay}
-                <code class="item-barcode">الباركود: ${this.escapeHtml(item.barcode)}</code>
+                
+                <!-- Scannable Barcode Section -->
+                <div class="barcode-section">
+                    <div class="barcode-header">
+                        <h4 class="barcode-title">
+                            <i class="fas fa-qrcode"></i>
+                            باركود للمسح السريع - POS Ready
+                        </h4>
+                        <p class="barcode-subtitle">يمكن لموظف نقطة البيع مسح هذا الباركود مباشرة</p>
+                    </div>
+                    <div class="barcode-container">
+                        <canvas id="${barcodeId}" class="barcode-canvas"></canvas>
+                        <div class="barcode-text">${this.escapeHtml(item.barcode)}</div>
+                    </div>
+                </div>
+                
                 <div class="item-price">
                     <span class="unit-price">${item.price.toFixed(2)} ${item.currency}</span>
                     <span class="price-separator">×</span>
@@ -167,7 +185,48 @@ class CartPage {
         // Add event listeners for this item
         this.setupItemEventListeners(itemDiv, item);
         
+        // Generate the barcode after the element is added to DOM
+        setTimeout(() => this.generateBarcode(barcodeId, item.barcode), 100);
+        
         return itemDiv;
+    }
+
+    generateBarcode(canvasId, barcodeValue) {
+        try {
+            // Check if JsBarcode is available
+            if (typeof JsBarcode === 'undefined') {
+                console.warn('JsBarcode library not loaded, barcode generation skipped');
+                return;
+            }
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.warn(`Canvas ${canvasId} not found, skipping barcode generation`);
+                return;
+            }
+
+            // Generate barcode with optimal settings for POS scanning
+            JsBarcode(canvas, barcodeValue, {
+                format: "CODE128", // Universal format supported by most POS systems
+                width: 2,          // Line width
+                height: 60,        // Barcode height
+                displayValue: false, // We show the text separately
+                margin: 10,        // Margin around barcode
+                fontSize: 0,       // No font in barcode itself
+                background: "#ffffff", // White background
+                lineColor: "#000000"   // Black lines
+            });
+
+            console.log(`Generated barcode for: ${barcodeValue}`);
+            
+        } catch (error) {
+            console.error('Error generating barcode:', error);
+            // Hide the barcode section if generation fails
+            const barcodeSection = document.getElementById(canvasId)?.closest('.barcode-section');
+            if (barcodeSection) {
+                barcodeSection.style.display = 'none';
+            }
+        }
     }
 
     setupItemEventListeners(itemElement, item) {
@@ -278,13 +337,19 @@ class CartPage {
         if (this.printItems) {
             this.printItems.innerHTML = '';
             
-            cart.forEach(item => {
+            cart.forEach((item, index) => {
                 const row = document.createElement('tr');
                 const itemTotal = (item.price * item.quantity).toFixed(2);
+                
+                // Create a small barcode for printing
+                const printBarcodeId = `print-barcode-${index}`;
                 
                 row.innerHTML = `
                     <td class="item-name-cell">
                         <div class="print-item-name">${this.escapeHtml(item.product_name)}</div>
+                        <div class="print-barcode-container">
+                            <canvas id="${printBarcodeId}" class="print-barcode"></canvas>
+                        </div>
                         <div class="print-item-barcode">${this.escapeHtml(item.barcode)}</div>
                     </td>
                     <td class="quantity-cell">${item.quantity}</td>
@@ -293,6 +358,9 @@ class CartPage {
                 `;
                 
                 this.printItems.appendChild(row);
+                
+                // Generate small barcode for printing
+                setTimeout(() => this.generatePrintBarcode(printBarcodeId, item.barcode), 100);
             });
         }
         
@@ -306,6 +374,30 @@ class CartPage {
         
         if (this.printTotalPrice) {
             this.printTotalPrice.textContent = `${totalPrice.toFixed(2)} USD`;
+        }
+    }
+
+    generatePrintBarcode(canvasId, barcodeValue) {
+        try {
+            if (typeof JsBarcode === 'undefined') return;
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            // Generate smaller barcode for print
+            JsBarcode(canvas, barcodeValue, {
+                format: "CODE128",
+                width: 1,          // Thinner lines for print
+                height: 30,        // Smaller height for print
+                displayValue: false,
+                margin: 5,
+                fontSize: 0,
+                background: "#ffffff",
+                lineColor: "#000000"
+            });
+
+        } catch (error) {
+            console.error('Error generating print barcode:', error);
         }
     }
 
