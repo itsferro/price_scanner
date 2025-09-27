@@ -15,6 +15,7 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USE_WINDOWS_AUTH = os.getenv("DB_USE_WINDOWS_AUTH", "true").lower() == "true"
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_DRIVER = os.getenv("DB_DRIVER", "ODBC Driver 17 for SQL Server")
 
 # Product table and column names
 PRODUCT_TABLE = os.getenv("PRODUCT_TABLE", "dbo.items")
@@ -37,9 +38,9 @@ USER_FULLNAME_COLUMN = os.getenv("USER_FULLNAME_COLUMN", "name")
 def get_connection_string():
     """Build ODBC connection string"""
     if DB_USE_WINDOWS_AUTH:
-        return f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={DB_SERVER};DATABASE={DB_NAME};Trusted_Connection=yes;"
+        return f"DRIVER={{{DB_DRIVER}}};SERVER={DB_SERVER};DATABASE={DB_NAME};Trusted_Connection=yes;"
     else:
-        return f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={DB_SERVER};DATABASE={DB_NAME};UID={DB_USERNAME};PWD={DB_PASSWORD};"
+        return f"DRIVER={{{DB_DRIVER}}};SERVER={DB_SERVER};DATABASE={DB_NAME};UID={DB_USERNAME};PWD={DB_PASSWORD};"
 
 def get_db_connection():
     """Get database connection"""
