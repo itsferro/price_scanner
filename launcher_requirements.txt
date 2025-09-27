@@ -1,0 +1,20 @@
+# Additional requirements for the GUI launcher
+# Add these to your existing requirements.txt or install separately
+
+# System tray functionality (latest version for Python 3.13 compatibility)
+pystray>=0.19.4
+
+# Image manipulation for tray icons (latest version for Python 3.13 compatibility)
+Pillow>=10.1.0
+
+# Note: tkinter is included with Python on Windows
+# Note: winreg is included with Python on Windows
+
+# Your existing requirements should also be installed:
+# fastapi==0.104.1
+# uvicorn[standard]==0.24.0
+# jinja2==3.1.2
+# sqlalchemy==2.0.23
+# python-dotenv==1.0.0
+# python-multipart==0.0.6
+# itsdangerous==2.1.2

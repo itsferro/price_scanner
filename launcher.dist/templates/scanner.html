@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+    <title>الماسح - ماسح الأسعار</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container scanner-page">
+        <!-- Error Message (Notification) -->
+        <div id="error-message" class="error-notification hidden">
+            <div class="error-content">
+                <span class="error-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                <span id="error-text" class="error-text"></span>
+            </div>
+            <button id="close-error" class="error-close"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Success Message (Notification) -->
+        <div id="success-message" class="success-notification hidden">
+            <div class="success-content">
+                <span class="success-icon"><i class="fas fa-check-circle"></i></span>
+                <span id="success-text" class="success-text"></span>
+            </div>
+            <button id="close-success" class="success-close"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-state hidden">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+            <p class="loading-text">جاري البحث عن المنتج...</p>
+        </div>
+
+        <!-- Header (Only visible when camera is NOT active) -->
+        <header id="scanner-header" class="scanner-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="icon"><i class="fas fa-mobile-alt"></i></span>
+                    ماسح الأسعار
+                </h1>
+                <button id="logout-btn" class="logout-btn">
+                    <span class="logout-icon"><i class="fas fa-sign-out-alt"></i></span>
+                    خروج
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Scanner Content -->
+        <main class="scanner-main">
+            
+            <!-- Product Result Card (Fixed at top when visible) -->
+            <div id="product-result" class="product-result-card hidden">
+                <div class="product-header">
+                    <h2 id="product-name" class="product-name"></h2>
+                    <button id="close-result" class="close-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="product-details">
+                    <div class="price-section">
+                        <span class="price-label">السعر</span>
+                        <span id="product-price" class="product-price"></span>
+                    </div>
+                    <div class="product-info">
+                        <div class="stock-info">
+                            <span class="stock-label">المخزون المتاح</span>
+                            <span id="product-stock" class="product-stock"></span>
+                        </div>
+                        <code id="product-barcode" class="product-barcode"></code>
+                    </div>
+                    <div class="add-to-cart-section">
+                        <div class="quantity-controls">
+                            <button class="quantity-btn minus-btn" id="quantity-minus"><i class="fas fa-minus"></i></button>
+                            <input type="number" id="product-quantity" class="quantity-input" value="1" min="1" max="999">
+                            <button class="quantity-btn plus-btn" id="quantity-plus"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <button id="add-to-cart-btn" class="btn btn-accent add-to-cart-btn">
+                            <span class="btn-icon"><i class="fas fa-shopping-cart"></i></span>
+                            إضافة للسلة
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Camera Container (Full screen when active) -->
+            <div id="camera-container" class="camera-container hidden">
+                <div class="camera-frame">
+                    <div id="qr-reader" class="qr-reader"></div>
+                    <div class="scan-overlay">
+                        <div class="scan-line"></div>
+                    </div>
+                </div>
+                <p id="scanner-status" class="scanner-status">وجه الكاميرا نحو الباركود</p>
+            </div>
+
+            <!-- Empty State (When not scanning) -->
+            <div id="empty-state" class="empty-state">
+                <div class="empty-content">
+                    <div class="empty-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <h3 class="empty-title">ابدأ المسح</h3>
+                    <p class="empty-subtitle">
+                        استخدم الكاميرا لمسح الباركود<br>
+                        أو أدخل الرقم يدوياً أسفل الشاشة
+                    </p>
+                    <button id="start-camera" class="btn btn-primary start-camera-btn">
+                        <span class="btn-icon"><i class="fas fa-camera"></i></span>
+                        تشغيل الكاميرا
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Camera Controls Overlay (Only visible during scanning) -->
+        <div id="camera-controls-overlay" class="camera-controls-overlay hidden">
+            <button id="stop-camera" class="camera-control-btn stop-btn">
+                <span class="btn-icon"><i class="fas fa-stop"></i></span>
+                إيقاف
+            </button>
+            <button id="switch-camera" class="camera-control-btn switch-btn">
+                <span class="btn-icon"><i class="fas fa-sync-alt"></i></span>
+                تبديل
+            </button>
+        </div>
+
+        <!-- Fixed Bottom Manual Search (Always visible when camera is NOT active) -->
+        <div id="manual-search-bar" class="manual-search-bar">
+            <div class="search-container">
+                <button id="search-manual" class="search-btn">
+                    <span class="btn-icon"><i class="fas fa-search"></i></span>
+                </button>
+                <input 
+                    type="text" 
+                    id="manual-barcode" 
+                    class="search-input" 
+                    placeholder="أدخل رقم الباركود" 
+                    maxlength="50" 
+                    autocomplete="off"
+                    dir="ltr"
+                >
+            </div>
+        </div>
+
+        <!-- Bottom Navigation (Hidden when camera is active) -->
+        <div id="bottom-nav" class="bottom-nav-container">
+            <!-- Navigation will be inserted by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="/static/js/shared.js"></script>
+    <script src="/static/js/scanner.js"></script>
+</body>
+</html>

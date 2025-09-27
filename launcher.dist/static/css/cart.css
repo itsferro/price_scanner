@@ -1,0 +1,852 @@
+/* ==================== CART.CSS - CART PAGE SPECIFIC STYLES ==================== */
+
+/* ==================== CART PAGE LAYOUT ==================== */
+.cart-page {
+    /* Use flexible layout for iOS compatibility */
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .cart-page {
+        height: auto;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* ==================== CART SUMMARY ==================== */
+.cart-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    padding: 20px;
+    color: var(--text-inverse);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.summary-item {
+    text-align: center;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    flex: 1;
+    min-width: 0;
+}
+
+.summary-label {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 4px;
+    display: block;
+    font-weight: 500;
+    color: var(--text-inverse);
+}
+
+.summary-value {
+    font-size: 18px;
+    font-weight: 700;
+    display: block;
+    color: var(--text-inverse);
+    word-break: break-all;
+}
+
+/* ==================== CART MAIN CONTENT ==================== */
+.cart-main {
+    flex: 1;
+    padding: 20px;
+    padding-bottom: calc(var(--nav-height) + 100px);
+    overflow-y: auto;
+    background: var(--bg-secondary);
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+}
+
+/* ==================== CART ITEMS ==================== */
+.cart-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.cart-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.cart-item:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-medium);
+}
+
+.item-info {
+    margin-bottom: 16px;
+}
+
+.item-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.item-stock {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    font-weight: 500;
+    border: 1px solid var(--border-light);
+}
+
+.item-barcode {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    direction: ltr;
+    text-align: left;
+    border: 1px solid var(--border-light);
+    margin-bottom: 12px;
+}
+
+.item-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 15px;
+}
+
+.price-separator {
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.total-price {
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* ==================== ITEM CONTROLS ==================== */
+.item-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-secondary);
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+}
+
+.quantity-btn {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-medium);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: var(--transition);
+}
+
+.quantity-btn:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--border-dark);
+    transform: scale(1.1);
+}
+
+.quantity-input {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-medium);
+    color: var(--text-primary);
+    text-align: center;
+    width: 60px;
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
+}
+
+.remove-btn {
+    background: var(--error);
+    border: none;
+    color: var(--text-inverse);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.remove-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+/* ==================== CART ACTIONS ==================== */
+.cart-actions {
+    position: fixed;
+    bottom: var(--nav-height);
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-light);
+    padding: 12px 20px;
+    z-index: 50;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+}
+
+.actions-row {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 10px 16px;
+    min-height: 44px;
+    font-size: 14px;
+    max-width: calc(50% - 6px);
+    white-space: nowrap;
+}
+
+/* Special styling for clear cart button */
+#clear-cart-btn {
+    background-color: var(--error);
+    border: none;
+    color: var(--text-inverse);
+}
+
+#clear-cart-btn:hover:not(:disabled) {
+    background-color: #b91c1c;
+}
+
+/* ==================== EMPTY CART STATE ==================== */
+.empty-cart .empty-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.empty-cart .empty-title {
+    font-size: 24px;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.empty-cart .empty-subtitle {
+    font-size: 16px;
+    margin-bottom: 32px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* ==================== PRINT TEMPLATE ==================== */
+.print-template {
+    display: none;
+}
+
+.print-header {
+    text-align: center;
+    margin-bottom: 30pt;
+    border-bottom: 2pt solid black;
+    padding-bottom: 15pt;
+}
+
+.print-info {
+    margin-bottom: 20pt;
+    text-align: right;
+    font-size: 12pt;
+}
+
+.print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20pt;
+    direction: rtl;
+}
+
+.print-table th,
+.print-table td {
+    border: 1pt solid black;
+    padding: 8pt;
+    text-align: right;
+    font-size: 11pt;
+}
+
+.print-table th {
+    background: #f0f0f0;
+    font-weight: bold;
+}
+
+.item-name-cell {
+    width: 50%;
+}
+
+.quantity-cell,
+.price-cell,
+.total-cell {
+    width: 16.66%;
+    text-align: center;
+}
+
+.print-item-name {
+    font-weight: bold;
+    margin-bottom: 2pt;
+}
+
+.print-item-barcode {
+    font-family: 'Courier New', monospace;
+    font-size: 10pt;
+    color: #666;
+    direction: ltr;
+    text-align: left;
+}
+
+.print-totals {
+    border-top: 2pt solid black;
+    padding-top: 15pt;
+    text-align: right;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5pt;
+    font-size: 12pt;
+}
+
+.grand-total {
+    font-weight: bold;
+    font-size: 14pt;
+    border-top: 1pt solid black;
+    padding-top: 10pt;
+    margin-top: 10pt;
+}
+
+.print-footer {
+    margin-top: 30pt;
+    text-align: center;
+    font-size: 10pt;
+    color: #666;
+    border-top: 1pt solid #ccc;
+    padding-top: 15pt;
+}
+
+/* ==================== CLEAR CART MODAL ==================== */
+.modal-warning {
+    color: var(--warning);
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+
+/* Mobile specific adjustments */
+@media (max-width: 480px) {
+    .cart-summary {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .summary-item {
+        padding: 10px 12px;
+    }
+    
+    .summary-label {
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+    
+    .summary-value {
+        font-size: 16px;
+        line-height: 1.2;
+    }
+    
+    .cart-main {
+        padding: 16px;
+        padding-bottom: calc(var(--nav-height) + 80px);
+    }
+    
+    .cart-actions {
+        padding: 10px 16px;
+    }
+    
+    .action-btn {
+        padding: 8px 12px;
+        min-height: 40px;
+        font-size: 13px;
+    }
+    
+    .action-btn .btn-icon {
+        font-size: 14px;
+    }
+    
+    .cart-item {
+        padding: 16px;
+    }
+    
+    .quantity-controls {
+        gap: 8px;
+    }
+    
+    .quantity-input {
+        width: 50px;
+        padding: 4px 6px;
+    }
+}
+
+/* Tablet adjustments */
+@media (max-width: 768px) and (min-width: 481px) {
+    .cart-summary {
+        padding: 18px;
+    }
+    
+    .summary-value {
+        font-size: 17px;
+    }
+    
+    .action-btn {
+        font-size: 15px;
+        min-height: 46px;
+        padding: 9px 14px;
+    }
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+    .print-template {
+        display: block !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        color: black;
+        font-size: 12pt;
+        line-height: 1.4;
+        padding: 20pt;
+        direction: rtl;
+    }
+    
+    body * {
+        visibility: hidden;
+    }
+    
+    .print-template,
+    .print-template * {
+        visibility: visible;
+    }
+    
+    /* Hide any debug elements when printing */
+    .debug-border {
+        border: none !important;
+    }
+}
+
+/* ==================== ACCESSIBILITY IMPROVEMENTS ==================== */
+@media (prefers-reduced-motion: reduce) {
+    .cart-item,
+    .quantity-btn,
+    .remove-btn,
+    .action-btn {
+        transition: none;
+    }
+}
+
+/* High contrast mode for cart items */
+@media (prefers-contrast: high) {
+    .cart-item {
+        border-width: 2px;
+    }
+    
+    .quantity-btn {
+        border-width: 2px;
+    }
+    
+    .item-stock {
+        border-width: 2px;
+    }
+}
+
+/* Focus indicators for cart controls */
+.quantity-btn:focus-visible,
+.quantity-input:focus-visible,
+.remove-btn:focus-visible,
+.action-btn:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* ==================== BARCODE DISPLAY STYLES ==================== */
+
+/* Barcode section styling */
+.barcode-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 2px solid var(--border-medium);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin: 12px 0;
+    text-align: center;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.barcode-header {
+    margin-bottom: 12px;
+}
+
+.barcode-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.barcode-title i {
+    font-size: 16px;
+    color: var(--accent);
+}
+
+.barcode-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+    font-style: italic;
+}
+
+.barcode-container {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.barcode-canvas {
+    display: block;
+    margin: 0 auto 8px;
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.barcode-text {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 1px;
+    background: var(--bg-tertiary);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    border: 1px solid var(--border-light);
+}
+
+/* Hover effect for better visibility */
+.barcode-section:hover {
+    border-color: var(--primary);
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.15);
+    transition: all var(--transition);
+}
+
+.barcode-section:hover .barcode-title {
+    color: var(--primary-dark);
+}
+
+.barcode-section:hover .barcode-container {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02);
+    transition: all var(--transition);
+}
+
+/* ==================== PRINT BARCODE STYLES ==================== */
+
+.print-barcode-container {
+    text-align: center;
+    margin: 5pt 0;
+}
+
+.print-barcode {
+    display: block;
+    margin: 0 auto;
+    max-width: 120pt;
+    height: auto;
+}
+
+/* Update print item styles */
+.print-item-name {
+    font-weight: bold;
+    margin-bottom: 5pt;
+    font-size: 11pt;
+}
+
+.print-item-barcode {
+    font-family: 'Courier New', monospace;
+    font-size: 9pt;
+    color: #666;
+    direction: ltr;
+    text-align: center;
+    margin-top: 3pt;
+}
+
+/* ==================== RESPONSIVE BARCODE STYLES ==================== */
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+    .barcode-section {
+        padding: 12px;
+        margin: 10px 0;
+    }
+    
+    .barcode-title {
+        font-size: 13px;
+    }
+    
+    .barcode-subtitle {
+        font-size: 11px;
+    }
+    
+    .barcode-container {
+        padding: 10px;
+    }
+    
+    .barcode-canvas {
+        max-width: calc(100vw - 100px); /* Ensure it fits on mobile */
+    }
+    
+    .barcode-text {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+}
+
+/* Tablet adjustments */
+@media (max-width: 768px) and (min-width: 481px) {
+    .barcode-section {
+        padding: 14px;
+    }
+    
+    .barcode-title {
+        font-size: 14px;
+    }
+    
+    .barcode-container {
+        padding: 11px;
+    }
+}
+
+/* ==================== ACCESSIBILITY IMPROVEMENTS ==================== */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .barcode-section {
+        border-width: 3px;
+        border-color: #000000;
+        background: #ffffff;
+    }
+    
+    .barcode-container {
+        border-width: 2px;
+        border-color: #000000;
+        background: #ffffff;
+    }
+    
+    .barcode-text {
+        background: #ffffff;
+        border-width: 2px;
+        border-color: #000000;
+        color: #000000;
+    }
+}
+
+/* Focus indicators */
+.barcode-section:focus-within {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .barcode-section,
+    .barcode-container {
+        transition: none;
+    }
+    
+    .barcode-section:hover {
+        transform: none;
+    }
+    
+    .barcode-section:hover .barcode-container {
+        transform: none;
+    }
+}
+
+/* ==================== PRINT MEDIA QUERIES ==================== */
+
+@media print {
+    .barcode-section {
+        background: white !important;
+        border: 1pt solid black !important;
+        box-shadow: none !important;
+        padding: 8pt !important;
+        margin: 5pt 0 !important;
+        page-break-inside: avoid;
+    }
+    
+    .barcode-title {
+        color: black !important;
+        font-size: 10pt !important;
+        margin-bottom: 3pt !important;
+    }
+    
+    .barcode-subtitle {
+        color: #666 !important;
+        font-size: 8pt !important;
+    }
+    
+    .barcode-container {
+        background: white !important;
+        border: 1pt solid black !important;
+        box-shadow: none !important;
+        padding: 5pt !important;
+    }
+    
+    .barcode-canvas {
+        max-width: 100pt !important;
+        height: auto !important;
+    }
+    
+    .barcode-text {
+        background: white !important;
+        border: 1pt solid black !important;
+        color: black !important;
+        font-size: 8pt !important;
+        padding: 2pt 4pt !important;
+    }
+    
+    /* Print-specific barcode styles */
+    .print-barcode-container {
+        page-break-inside: avoid;
+    }
+    
+    .print-barcode {
+        max-width: 80pt !important;
+        height: auto !important;
+    }
+}
+
+/* ==================== BARCODE LOADING STATES ==================== */
+
+/* Loading placeholder for barcode generation */
+.barcode-canvas:empty::before {
+    content: "جاري إنشاء الباركود...";
+    display: block;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border: 1px dashed var(--border-medium);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+}
+
+/* Error state styling */
+.barcode-error {
+    background: var(--error-bg);
+    border: 1px solid var(--error);
+    color: var(--error);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    text-align: center;
+}
+
+.barcode-error::before {
+    content: "⚠️ ";
+    margin-right: 4px;
+}
+
+/* ==================== SPECIAL BARCODE FEATURES ==================== */
+
+/* Add a subtle scan animation effect */
+@keyframes scan-glow {
+    0%, 100% {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    50% {
+        box-shadow: 0 2px 4px rgba(4, 120, 87, 0.3), 0 0 8px rgba(4, 120, 87, 0.2);
+    }
+}
+
+/* Optional: Add scan glow effect on hover */
+.barcode-container:hover {
+    animation: scan-glow 2s ease-in-out infinite;
+}
+
+/* Disable animation for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .barcode-container:hover {
+        animation: none;
+    }
+}

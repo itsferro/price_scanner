@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>السلة - ماسح الأسعار</title>
+    
+    <!-- Load common styles first, then page-specific styles with cache-busting -->
+    <link rel="stylesheet" href="/static/css/common.css?v=2.1">
+    <link rel="stylesheet" href="/static/css/cart.css?v=2.1">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container cart-page">
+        <!-- Error Notification -->
+        <div id="error-message" class="error-notification hidden">
+            <div class="error-content">
+                <span class="error-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                <span id="error-text" class="error-text"></span>
+            </div>
+            <button id="close-error" class="error-close"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Success Notification -->
+        <div id="success-message" class="success-notification hidden">
+            <div class="success-content">
+                <span class="success-icon"><i class="fas fa-check-circle"></i></span>
+                <span id="success-text" class="success-text"></span>
+            </div>
+            <button id="close-success" class="success-close"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Header -->
+        <header class="page-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="icon"><i class="fas fa-shopping-cart"></i></span>
+                    سلة التسوق
+                </h1>
+                <button id="logout-btn" class="logout-btn">
+                    <span class="logout-icon"><i class="fas fa-sign-out-alt"></i></span>
+                    خروج
+                </button>
+            </div>
+        </header>
+
+        <!-- Cart Summary -->
+        <div class="cart-summary">
+            <div class="summary-item">
+                <span class="summary-label">إجمالي العناصر:</span>
+                <span id="total-items" class="summary-value">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">إجمالي السعر:</span>
+                <span id="total-price" class="summary-value">0.00 USD</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="cart-main">
+            <!-- Empty Cart State -->
+            <div id="empty-cart" class="empty-state empty-cart">
+                <div class="empty-content">
+                    <div class="empty-icon"><i class="fas fa-shopping-cart"></i></div>
+                    <h3 class="empty-title">السلة فارغة</h3>
+                    <p class="empty-subtitle">
+                        ابدأ بمسح المنتجات وإضافتها إلى السلة<br>
+                        من صفحة الماسح
+                    </p>
+                    <a href="/scanner" class="btn btn-primary empty-action-btn">
+                        <span class="btn-icon"><i class="fas fa-mobile-alt"></i></span>
+                        انتقل إلى الماسح
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cart Items -->
+            <div id="cart-items" class="cart-items hidden">
+                <!-- Cart items populated by JavaScript -->
+            </div>
+        </main>
+
+        <!-- Fixed Bottom Actions -->
+        <div id="cart-actions" class="cart-actions hidden">
+            <div class="actions-row">
+                <button id="clear-cart-btn" class="btn btn-secondary action-btn">
+                    <span class="btn-icon"><i class="fas fa-trash-alt"></i></span>
+                    مسح الكل
+                </button>
+                <button id="print-invoice-btn" class="btn btn-accent action-btn">
+                    <span class="btn-icon"><i class="fas fa-print"></i></span>
+                    طباعة فاتورة
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div id="bottom-nav" class="bottom-nav-container">
+            <!-- Navigation populated by JavaScript -->
+        </div>
+
+        <!-- Print Template -->
+        <div id="print-template" class="print-template hidden">
+            <div class="print-header">
+                <h1>فاتورة أولية - Proforma Invoice</h1>
+                <div class="print-info">
+                    <p><strong>التاريخ:</strong> <span id="print-date"></span></p>
+                    <p><strong>الوقت:</strong> <span id="print-time"></span></p>
+                    <p><strong>المستخدم:</strong> {{ username }}</p>
+                </div>
+            </div>
+            
+            <div class="print-content">
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>المنتج</th>
+                            <th>الكمية</th>
+                            <th>السعر الوحدة</th>
+                            <th>الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody id="print-items">
+                        <!-- Print items populated by JavaScript -->
+                    </tbody>
+                </table>
+                
+                <div class="print-totals">
+                    <div class="total-row">
+                        <span class="total-label">إجمالي العناصر:</span>
+                        <span id="print-total-items" class="total-value">0</span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span class="total-label">المجموع الكلي:</span>
+                        <span id="print-total-price" class="total-value">0.00 USD</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="print-footer">
+                <p><strong>ملاحظة:</strong> هذه فاتورة أولية للاستخدام الداخلي فقط</p>
+                <p>تم إنشاؤها بواسطة نظام ماسح الأسعار v2.0</p>
+            </div>
+        </div>
+
+        <!-- Clear Cart Modal -->
+        <div id="clear-cart-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">تأكيد مسح السلة</h3>
+                </div>
+                <div class="modal-body">
+                    <p>هل أنت متأكد من أنك تريد مسح جميع العناصر من السلة؟</p>
+                    <p class="modal-warning">لا يمكن التراجع عن هذا الإجراء.</p>
+                </div>
+                <div class="modal-actions">
+                    <button id="confirm-clear-btn" class="btn btn-secondary">
+                        <span class="btn-icon"><i class="fas fa-trash-alt"></i></span>
+                        نعم، امسح الكل
+                    </button>
+                    <button id="cancel-clear-btn" class="btn btn-primary">
+                        <span class="btn-icon"><i class="fas fa-times"></i></span>
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript libraries -->
+    <!-- JsBarcode library for generating scannable barcodes -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    
+    <!-- Load JavaScript with cache-busting: common first, then page-specific -->
+    <script src="/static/js/common.js?v=2.1"></script>
+    <script src="/static/js/cart.js?v=2.1"></script>
+</body>
+</html>
