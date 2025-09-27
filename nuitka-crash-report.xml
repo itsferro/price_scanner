@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='utf8'?>
+<nuitka-compilation-report nuitka_version="2.7.16" nuitka_commercial_version="not installed" mode="accelerated" completion="error exit message (1)" exit_message="Failed unexpectedly in Scons C backend compilation.">
+  <module name="__main__" kind="PythonMainModule" usage="root_module" reason="Root module" source_path="${cwd}\launcher.py">
+    <optimization-time pass="1" time="0.17" micro_passes="5" max_branch_merge="218" merged_total="4321" />
+    <optimization-time pass="2" time="0.01" micro_passes="1" max_branch_merge="218" merged_total="727" />
+    <module_usages>
+      <module_usage name="site" finding="excluded" line="1" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="os" finding="excluded" line="5" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="sys" finding="absolute" line="6" />
+      <module_usage name="threading" finding="excluded" line="7" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="time" finding="absolute" line="8" />
+      <module_usage name="socket" finding="excluded" line="9" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="webbrowser" finding="excluded" line="10" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="argparse" finding="excluded" line="11" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="datetime" finding="excluded" line="12" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="pathlib" finding="excluded" line="13" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="pathlib.Path" finding="not-found" line="13" />
+      <module_usage name="tkinter" finding="excluded" line="14" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="tkinter" finding="excluded" line="15" exclusion_reason="Not following into stdlib unless standalone or requested to follow into stdlib." />
+      <module_usage name="tkinter.ttk" finding="relative" line="15" />
+      <module_usage name="tkinter.scrolledtext" finding="relative" line="15" />
+      <module_usage name="tkinter.messagebox" finding="relative" line="15" />
+      <module_usage name="winreg" finding="absolute" line="16" />
+      <module_usage name="PIL" finding="absolute" line="17" />
+      <module_usage name="PIL.Image" finding="relative" line="17" />
+      <module_usage name="PIL.ImageDraw" finding="relative" line="17" />
+      <module_usage name="pystray" finding="absolute" line="18" />
+      <module_usage name="pystray" finding="absolute" line="19" />
+      <module_usage name="pystray.MenuItem" finding="not-found" line="19" />
+      <module_usage name="uvicorn" finding="absolute" line="20" />
+      <module_usage name="dotenv" finding="absolute" line="40" />
+      <module_usage name="dotenv.load_dotenv" finding="not-found" line="40" />
+      <module_usage name="main" finding="absolute" line="55" />
+      <module_usage name="database" finding="absolute" line="56" />
+    </module_usages>
+  </module>
+  <performance>
+    <memory_usage name="after_launch" value="41222144" />
+    <memory_usage name="before_c_code_generation" value="44552192" />
+    <memory_usage name="before_running_scons" value="46350336" />
+  </performance>
+  <data_file name="cert.pem" source="${cwd}\cert.pem" size="1374" reason="specified data file 'cert.pem=cert.pem' on command line" tags="user,copy" />
+  <data_file name="key.pem" source="${cwd}\key.pem" size="1732" reason="specified data file 'key.pem=key.pem' on command line" tags="user,copy" />
+  <data_file name="templates\cart.html" source="${cwd}\templates\cart.html" size="8652" reason="specified data dir 'templates' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="templates\index.html" source="${cwd}\templates\index.html" size="10622" reason="specified data dir 'templates' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="templates\info.html" source="${cwd}\templates\info.html" size="12231" reason="specified data dir 'templates' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="templates\login.html" source="${cwd}\templates\login.html" size="4209" reason="specified data dir 'templates' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="templates\scanner.html" source="${cwd}\templates\scanner.html" size="7904" reason="specified data dir 'templates' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\css\cart.css" source="${cwd}\static\css\cart.css" size="18502" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\css\common.css" source="${cwd}\static\css\common.css" size="15763" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\css\info.css" source="${cwd}\static\css\info.css" size="0" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\css\login.css" source="${cwd}\static\css\login.css" size="0" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\css\scanner.css" source="${cwd}\static\css\scanner.css" size="0" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\css\style.css" source="${cwd}\static\css\style.css" size="60957" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\js\cart.js" source="${cwd}\static\js\cart.js" size="17258" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\js\common.js" source="${cwd}\static\js\common.js" size="18850" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\js\info.js" source="${cwd}\static\js\info.js" size="13581" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\js\login.js" source="${cwd}\static\js\login.js" size="4911" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\js\scanner.js" source="${cwd}\static\js\scanner.js" size="27305" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_file name="static\js\shared.js" source="${cwd}\static\js\shared.js" size="25878" reason="specified data dir 'static' on command line" tags="user,copy,data-dir-contents" />
+  <data_composer blob_size="8303" total="523">
+    <module_data filename="__bytecode.const" blob_name=".bytecode" blob_size="3" input_size="0" />
+    <module_data filename="__constants.const" blob_name="" blob_size="951" input_size="2318" />
+    <module_data filename="module.__main__.const" blob_name="__main__" blob_size="7309" input_size="12083" />
+  </data_composer>
+  <command_line>
+    <option value="--windows-console-mode=disable" />
+    <option value="--enable-plugin=tk-inter" />
+    <option value="--include-data-dir=templates=templates" />
+    <option value="--include-data-dir=static=static" />
+    <option value="--include-data-files=cert.pem=cert.pem" />
+    <option value="--include-data-files=key.pem=key.pem" />
+    <option value="--company-name=f.alzaidi" />
+    <option value="--product-name=Price Scanner System" />
+    <option value="--file-version=0.1.0" />
+    <option value="--product-version=0.1.0" />
+    <option value="--file-description=Price Scanner System - Desktop Application" />
+    <option value="launcher.py" />
+  </command_line>
+  <plugins>
+    <plugin name="anti-bloat" user_enabled="no" />
+    <plugin name="eventlet" user_enabled="no" />
+    <plugin name="gi" user_enabled="no" />
+    <plugin name="implicit-imports" user_enabled="no" />
+    <plugin name="multiprocessing" user_enabled="no" />
+    <plugin name="options-nanny" user_enabled="no" />
+    <plugin name="pkg-resources" user_enabled="no" />
+    <plugin name="transformers" user_enabled="no" />
+  </plugins>
+  <distributions />
+  <python python_exe="${sys.prefix}\Scripts\python.exe" python_flavor="CPython Official" python_version="3.13.6" os_name="Windows" os_release="11" arch_name="x86_64" filesystem_encoding="utf-8" gil="yes">
+    <search_path>
+      <path value="${cwd}" />
+      <path value="${sys.real_prefix}\DLLs" />
+      <path value="${sys.real_prefix}\Lib" />
+      <path value="${sys.real_prefix}" />
+      <path value="${sys.prefix}" />
+      <path value="${sys.prefix}\Lib\site-packages" />
+    </search_path>
+  </python>
+  <output run_filename="${cwd}\launcher.cmd" />
+</nuitka-compilation-report>

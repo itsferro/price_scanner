@@ -1,0 +1,56 @@
+# # Database Configuration
+# DB_SERVER=localhost\SQLEXPRESS
+# DB_NAME=RetailPOS
+# DB_USE_WINDOWS_AUTH=false
+# DB_USERNAME=PriceScannerUser
+# DB_PASSWORD=Scanner123!
+# DB_PORT=1434
+
+# # Server Configuration
+# HOST=0.0.0.0
+# PORT=8000
+# DEBUG=false
+
+# # Database Schema (matches your new table)
+# PRODUCT_TABLE=Products
+# BARCODE_COLUMN=Barcode
+# NAME_COLUMN=ProductName
+# PRICE_COLUMN=Price
+# DESCRIPTION_COLUMN=Description
+
+# ________________________________________________________________________________
+
+# Database Configuration
+DB_SERVER=(local)
+DB_NAME=ALMEDADSOFT_ALETQAN_0004
+DB_USE_WINDOWS_AUTH=true
+DB_USERNAME=DESKTOP-HSAFRGG
+DB_PASSWORD=Aa11223344Aa
+DB_PORT=1434
+DB_DRIVER=ODBC Driver 11 for SQL Server
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=8000
+DEBUG=false
+
+# Database Schema - Products Table
+PRODUCT_TABLE=dbo.items
+BARCODE_COLUMN=PARCODE1
+NAME_COLUMN=item_name
+PRICE_COLUMN=price
+PRODUCT_ID_COLUMN=id
+
+# Database Schema - Stock/Quantity Table (NEW)
+STOCK_TABLE=dbo.quntity
+STOCK_PRODUCT_ID_COLUMN=item_id
+STOCK_QUANTITY_COLUMN=qunt
+
+# Database Schema - Users Authentication
+USER_TABLE=dbo.employee
+USER_USERNAME_COLUMN=user_name
+USER_PASSWORD_COLUMN=password
+USER_FULLNAME_COLUMN=name
+
+# Authentication Configuration (Fallback if database fails)
+SECRET_KEY=cTjXuJLyiiDhYcnJ

@@ -1,5 +1,5 @@
 """
-Price Scanner System - GUI Launcher
+Price Scanner System - GUI Launcher (Updated with External .env Reading)
 Wraps the existing FastAPI application with a desktop GUI and system tray
 """
 import os
@@ -19,8 +19,36 @@ import pystray
 from pystray import MenuItem as TrayMenuItem
 import uvicorn
 
+# ==================== FORCE EXTERNAL .ENV FILE READING ====================
+# This ensures the .exe always reads .env from the current directory, not embedded data
+
+# Get the directory where the executable/script is located
+if getattr(sys, 'frozen', False):
+    # If running as exe
+    app_dir = Path(sys.executable).parent
+else:
+    # If running as script
+    app_dir = Path(__file__).parent
+
+# Change to the app directory to ensure .env file is found
+original_cwd = os.getcwd()
+os.chdir(app_dir)
+
+# Force load environment variables from external .env file
+env_file = app_dir / '.env'
+if env_file.exists():
+    from dotenv import load_dotenv
+    load_dotenv(env_file)
+    print(f"✅ Loaded .env from: {env_file}")
+else:
+    print(f"⚠️ Warning: .env file not found at: {env_file}")
+    print(f"Current directory: {os.getcwd()}")
+    print(f"App directory: {app_dir}")
+
+# ==================== IMPORT APPLICATION COMPONENTS ====================
+
 # Add current directory to Python path so we can import main
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(app_dir))
 
 try:
     # Import the FastAPI app from existing main.py
@@ -192,6 +220,11 @@ class PriceScannerGUI:
         self.tray_icon = None
         self.setup_window()
         self.setup_activity_callback()
+        
+        # Log environment status
+        self.activity_logger.add_activity(f"Working directory: {os.getcwd()}")
+        self.activity_logger.add_activity(f"App directory: {app_dir}")
+        self.activity_logger.add_activity(f".env file exists: {env_file.exists()}")
         
         # Start components
         self.start_services()
