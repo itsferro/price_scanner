@@ -1,35 +1,36 @@
 /**
- * Scanner Page JavaScript - Mobile-First Full Screen Design with Fixed Cart Integration
- * Updated to display stock quantity and remove description
- * Added: Click outside product card to close it
+ * Scanner Page JavaScript - FIXED: iOS Camera Permission Issue
+ * Fix: Reuse Html5Qrcode instance and properly manage camera permissions
  */
 
 class ScannerPage {
     constructor() {
-        this.html5QrCode = null;
+        this.html5QrCode = null; // Will be initialized once and reused
         this.isScanning = false;
         this.lastScanTime = 0;
-        this.scanCooldown = 2000; // 2 seconds between scans
+        this.scanCooldown = 2000;
         this.currentProduct = null;
         this.availableCameras = [];
         this.currentCameraIndex = 0;
+        this.permissionGranted = false; // Track permission state
+        this.currentStream = null; // Track active stream
         
         this.initializeElements();
         this.setupEventListeners();
         this.checkMobilePermissions();
         this.waitForCartManager();
+        
+        // Initialize Html5Qrcode instance once
+        this.initializeScanner();
     }
 
     async waitForCartManager() {
-        // Wait for shared utils to be ready
         if (typeof window.waitForSharedUtils === 'function') {
             await window.waitForSharedUtils();
         }
         
-        // Double-check cart manager is available
         if (!window.cartManager) {
             console.warn('Cart manager not available, creating fallback');
-            // Create a simple fallback if needed
             window.cartManager = {
                 addProduct: () => {
                     console.error('Cart manager not properly initialized');
@@ -39,6 +40,57 @@ class ScannerPage {
         }
         
         console.log('Scanner page ready with cart manager:', !!window.cartManager);
+    }
+
+    // FIXED: Initialize scanner instance once and reuse it
+    initializeScanner() {
+        try {
+            if (!this.html5QrCode) {
+                this.html5QrCode = new Html5Qrcode("qr-reader");
+                console.log('Html5Qrcode instance initialized');
+            }
+        } catch (error) {
+            console.error('Failed to initialize Html5Qrcode:', error);
+        }
+    }
+
+    // FIXED: Check permissions before starting camera
+    async checkCameraPermission() {
+        try {
+            // Check if we already have permission
+            if (this.permissionGranted) {
+                return true;
+            }
+
+            // For modern browsers, check permission status
+            if (navigator.permissions && navigator.permissions.query) {
+                const permission = await navigator.permissions.query({ name: 'camera' });
+                if (permission.state === 'granted') {
+                    this.permissionGranted = true;
+                    return true;
+                } else if (permission.state === 'denied') {
+                    throw new Error('تم رفض إذن الوصول للكاميرا. يرجى تمكينه من إعدادات المتصفح.');
+                }
+            }
+
+            // For iOS Safari and other browsers, try to get cameras list (this will prompt for permission if needed)
+            try {
+                this.availableCameras = await Html5Qrcode.getCameras();
+                if (this.availableCameras.length === 0) {
+                    throw new Error('لا توجد كاميرات متاحة');
+                }
+                this.permissionGranted = true;
+                return true;
+            } catch (error) {
+                if (error.name === 'NotAllowedError' || error.message.includes('Permission denied')) {
+                    throw new Error('تم رفض إذن الوصول للكاميرا. يرجى السماح بالوصول للكاميرا وإعادة المحاولة.');
+                }
+                throw error;
+            }
+        } catch (error) {
+            console.error('Camera permission check failed:', error);
+            throw error;
+        }
     }
 
     checkMobilePermissions() {
@@ -75,7 +127,7 @@ class ScannerPage {
         this.productResult = document.getElementById('product-result');
         this.productName = document.getElementById('product-name');
         this.productPrice = document.getElementById('product-price');
-        this.productStock = document.getElementById('product-stock'); // New stock element
+        this.productStock = document.getElementById('product-stock');
         this.productBarcode = document.getElementById('product-barcode');
         this.closeResultBtn = document.getElementById('close-result');
         
@@ -103,7 +155,7 @@ class ScannerPage {
         // Product result
         this.closeResultBtn?.addEventListener('click', () => this.hideProductResult());
         
-        // Close product card when clicking outside of it
+        // Close product card when clicking outside
         document.addEventListener('click', (e) => {
             if (this.currentProduct && !this.productResult?.classList.contains('hidden')) {
                 if (!e.target.closest('#product-result')) {
@@ -118,29 +170,57 @@ class ScannerPage {
         this.quantityInput?.addEventListener('change', () => this.validateQuantity());
         this.quantityInput?.addEventListener('blur', () => this.validateQuantity());
         
-        // Add to cart - Enhanced with better error handling
+        // Add to cart
         this.addToCartBtn?.addEventListener('click', () => this.addToCart());
 
         // Focus manual input initially
         setTimeout(() => {
             this.manualInput?.focus();
         }, 100);
+
+        // FIXED: Handle page visibility changes to properly manage camera
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && this.isScanning) {
+                console.log('Page hidden, pausing scanner');
+                this.pauseScanner();
+            } else if (!document.hidden && this.isScanning) {
+                console.log('Page visible, resuming scanner');
+                this.resumeScanner();
+            }
+        });
+
+        // FIXED: Handle page unload to properly clean up camera
+        window.addEventListener('beforeunload', () => {
+            this.cleanup();
+        });
     }
 
+    // FIXED: Improved startScanner with proper permission handling
     async startScanner() {
         try {
             window.sharedUtils?.hideError();
             this.hideProductResult();
+            
+            this.showStatus('جاري فحص إذن الكاميرا...');
+            
+            // Check camera permission first
+            await this.checkCameraPermission();
             
             this.showStatus('جاري تشغيل الكاميرا...');
             
             // Enter full-screen camera mode
             this.enterFullScreenMode();
             
-            this.html5QrCode = new Html5Qrcode("qr-reader");
-            
-            // Get available cameras
-            this.availableCameras = await Html5Qrcode.getCameras();
+            // Ensure we have an Html5Qrcode instance
+            if (!this.html5QrCode) {
+                this.initializeScanner();
+            }
+
+            // Use stored cameras if available, otherwise get them fresh
+            if (this.availableCameras.length === 0) {
+                this.availableCameras = await Html5Qrcode.getCameras();
+            }
+
             if (this.availableCameras.length === 0) {
                 throw new Error('لا توجد كاميرات متاحة');
             }
@@ -148,18 +228,24 @@ class ScannerPage {
             // Use back camera by default, or first available
             const backCamera = this.availableCameras.find(camera => 
                 camera.label.toLowerCase().includes('back') || 
-                camera.label.toLowerCase().includes('rear')
+                camera.label.toLowerCase().includes('rear') ||
+                camera.label.toLowerCase().includes('environment')
             );
             
-            const cameraId = backCamera?.id || this.availableCameras[3].id;
+            const cameraId = backCamera?.id || this.availableCameras[0].id;
             this.currentCameraIndex = this.availableCameras.findIndex(cam => cam.id === cameraId);
 
+            // FIXED: Optimized camera config for better iOS compatibility
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
+                aspectRatio: 1.0,
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: false // Better iOS compatibility
+                }
             };
 
+            // FIXED: Start camera with the reused instance
             await this.html5QrCode.start(
                 cameraId,
                 config,
@@ -182,11 +268,13 @@ class ScannerPage {
         }
     }
 
+    // FIXED: Improved stopScanner with proper cleanup
     async stopScanner() {
         try {
             if (this.html5QrCode && this.isScanning) {
                 await this.html5QrCode.stop();
-                this.html5QrCode.clear();
+                // Don't clear the instance, just stop it so we can reuse it
+                console.log('Camera stopped successfully');
             }
             
             this.isScanning = false;
@@ -198,6 +286,33 @@ class ScannerPage {
         }
     }
 
+    // NEW: Pause scanner without stopping (for page visibility)
+    async pauseScanner() {
+        if (this.html5QrCode && this.isScanning) {
+            try {
+                await this.html5QrCode.pause();
+                console.log('Scanner paused');
+            } catch (error) {
+                console.error('Pause scanner error:', error);
+            }
+        }
+    }
+
+    // NEW: Resume scanner (for page visibility)
+    async resumeScanner() {
+        if (this.html5QrCode && this.isScanning) {
+            try {
+                await this.html5QrCode.resume();
+                console.log('Scanner resumed');
+            } catch (error) {
+                console.error('Resume scanner error:', error);
+                // If resume fails, try to restart
+                this.stopScanner();
+            }
+        }
+    }
+
+    // FIXED: Improved switchCamera without permission re-request
     async switchCamera() {
         if (!this.isScanning || this.availableCameras.length <= 1) return;
         
@@ -214,9 +329,13 @@ class ScannerPage {
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
+                aspectRatio: 1.0,
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: false
+                }
             };
 
+            // Start with new camera (no permission request since we're reusing the instance)
             await this.html5QrCode.start(
                 nextCamera.id,
                 config,
@@ -229,6 +348,18 @@ class ScannerPage {
         } catch (error) {
             console.error('Switch camera error:', error);
             window.sharedUtils?.showError('فشل في تبديل الكاميرا');
+        }
+    }
+
+    // NEW: Proper cleanup method
+    cleanup() {
+        try {
+            if (this.html5QrCode && this.isScanning) {
+                this.html5QrCode.stop();
+                this.html5QrCode.clear();
+            }
+        } catch (error) {
+            console.error('Cleanup error:', error);
         }
     }
 
@@ -254,7 +385,7 @@ class ScannerPage {
     }
 
     onScanError(error) {
-        if (!error.includes('No QR code found')) {
+        if (!error.includes('No QR code found') && !error.includes('NotFoundException')) {
             console.log('Scan error:', error);
         }
     }
@@ -280,7 +411,7 @@ class ScannerPage {
 
             const response = await window.sharedUtils?.apiCall(`/api/price/${encodeURIComponent(barcode)}`);
             
-            if (!response) return; // Auth redirect handled by apiCall
+            if (!response) return;
             
             if (!response.ok) {
                 if (response.status === 404) {
@@ -306,7 +437,7 @@ class ScannerPage {
         
         if (!this.productName) return;
 
-        // Display product information - updated to show stock instead of description
+        // Display product information
         this.productName.textContent = window.sharedUtils?.escapeHtml(product.product_name) || product.product_name;
         
         if (this.productPrice) {
@@ -457,11 +588,6 @@ class ScannerPage {
                 }, 100);
                 
                 console.log('Product added to cart successfully');
-                
-                // Debug cart state
-                if (window.cartManager.debugCart) {
-                    window.cartManager.debugCart();
-                }
             } else {
                 throw new Error('فشل في إضافة المنتج إلى السلة');
             }
@@ -516,6 +642,8 @@ class ScannerPage {
         console.log('Cart manager available:', !!window.cartManager);
         console.log('Shared utils available:', !!window.sharedUtils);
         console.log('Add to cart button:', this.addToCartBtn);
+        console.log('Permission granted:', this.permissionGranted);
+        console.log('Html5QrCode instance:', !!this.html5QrCode);
         
         if (window.cartManager && window.cartManager.debugCart) {
             window.cartManager.debugCart();
@@ -545,18 +673,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Handle page visibility changes
-document.addEventListener('visibilitychange', () => {
-    if (window.scannerPage && window.scannerPage.isScanning) {
-        if (document.hidden) {
-            console.log('Page hidden, pausing scanner');
-        } else {
-            console.log('Page visible, resuming scanner');
-        }
-    }
-});
-
-// Debug function for testing cart functionality
+// Debug functions
 window.testCartFunctionality = function() {
     console.log('=== CART FUNCTIONALITY TEST ===');
     
@@ -565,7 +682,6 @@ window.testCartFunctionality = function() {
         return;
     }
     
-    // Test adding a mock product with stock
     const mockProduct = {
         barcode: 'TEST123',
         product_name: 'Test Product',
@@ -578,13 +694,11 @@ window.testCartFunctionality = function() {
     const success = window.cartManager.addProduct(mockProduct, 2);
     console.log('Add result:', success);
     
-    // Debug cart state
     if (window.cartManager.debugCart) {
         window.cartManager.debugCart();
     }
 };
 
-// Export debug function
 window.debugScannerPage = function() {
     if (window.scannerPage && window.scannerPage.debugAddToCart) {
         window.scannerPage.debugAddToCart();
@@ -593,6 +707,4 @@ window.debugScannerPage = function() {
     }
 };
 
-console.log('Scanner page script loaded. Debug functions available:');
-console.log('- testCartFunctionality() - Test cart with mock product');
-console.log('- debugScannerPage() - Debug current scanner state');
+console.log('Scanner page script loaded with iOS camera permission fix.');
