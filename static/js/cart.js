@@ -1,6 +1,5 @@
 /**
- * CART.JS - Cart Page Specific JavaScript (Updated with Scannable Barcodes)
- * Clean, focused cart management functionality with POS-ready barcode display
+ * CART.JS - Cart Page with Compact Print & Latin Numbers
  */
 
 class CartPage {
@@ -40,27 +39,22 @@ class CartPage {
     }
 
     setupEventListeners() {
-        // Action buttons
         this.clearCartBtn?.addEventListener('click', () => this.showClearCartModal());
         this.printInvoiceBtn?.addEventListener('click', () => this.printInvoice());
         
-        // Modal actions
         this.confirmClearBtn?.addEventListener('click', () => this.confirmClearCart());
         this.cancelClearBtn?.addEventListener('click', () => this.hideClearCartModal());
         
-        // Modal overlay click to close
         this.clearCartModal?.addEventListener('click', (e) => {
             if (e.target === this.clearCartModal) {
                 this.hideClearCartModal();
             }
         });
         
-        // Listen for cart updates from other pages
         document.addEventListener('cartUpdated', () => {
             this.loadCartData();
         });
         
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !this.clearCartModal?.classList.contains('hidden')) {
                 this.hideClearCartModal();
@@ -130,32 +124,14 @@ class CartPage {
         
         const itemTotal = (item.price * item.quantity).toFixed(2);
         
-        // Stock display
         const stockDisplay = item.stock_qty !== undefined && item.stock_qty !== null ? 
             `<div class="item-stock">المخزون: ${item.stock_qty} قطعة</div>` : '';
         
-        // Generate unique ID for barcode canvas
-        const barcodeId = `barcode-${item.barcode.replace(/[^a-zA-Z0-9]/g, '')}-${Date.now()}`;
-        
+        // Compact HTML without barcode section
         itemDiv.innerHTML = `
             <div class="item-info">
                 <h3 class="item-name">${this.escapeHtml(item.product_name)}</h3>
                 ${stockDisplay}
-                
-                <!-- Scannable Barcode Section -->
-                <div class="barcode-section">
-                    <div class="barcode-header">
-                        <h4 class="barcode-title">
-                            <i class="fas fa-qrcode"></i>
-                            باركود للمسح السريع - POS Ready
-                        </h4>
-                        <p class="barcode-subtitle">يمكن لموظف نقطة البيع مسح هذا الباركود مباشرة</p>
-                    </div>
-                    <div class="barcode-container">
-                        <canvas id="${barcodeId}" class="barcode-canvas"></canvas>
-                        <div class="barcode-text">${this.escapeHtml(item.barcode)}</div>
-                    </div>
-                </div>
                 
                 <div class="item-price">
                     <span class="unit-price">${item.price.toFixed(2)} ${item.currency}</span>
@@ -182,55 +158,11 @@ class CartPage {
             </div>
         `;
         
-        // Add event listeners for this item
         this.setupItemEventListeners(itemDiv, item);
-        
-        // Generate the barcode after the element is added to DOM
-        setTimeout(() => this.generateBarcode(barcodeId, item.barcode), 100);
-        
         return itemDiv;
     }
 
-    generateBarcode(canvasId, barcodeValue) {
-        try {
-            // Check if JsBarcode is available
-            if (typeof JsBarcode === 'undefined') {
-                console.warn('JsBarcode library not loaded, barcode generation skipped');
-                return;
-            }
-
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) {
-                console.warn(`Canvas ${canvasId} not found, skipping barcode generation`);
-                return;
-            }
-
-            // Generate barcode with optimal settings for POS scanning
-            JsBarcode(canvas, barcodeValue, {
-                format: "CODE128", // Universal format supported by most POS systems
-                width: 2,          // Line width
-                height: 60,        // Barcode height
-                displayValue: false, // We show the text separately
-                margin: 10,        // Margin around barcode
-                fontSize: 0,       // No font in barcode itself
-                background: "#ffffff", // White background
-                lineColor: "#000000"   // Black lines
-            });
-
-            console.log(`Generated barcode for: ${barcodeValue}`);
-            
-        } catch (error) {
-            console.error('Error generating barcode:', error);
-            // Hide the barcode section if generation fails
-            const barcodeSection = document.getElementById(canvasId)?.closest('.barcode-section');
-            if (barcodeSection) {
-                barcodeSection.style.display = 'none';
-            }
-        }
-    }
-
     setupItemEventListeners(itemElement, item) {
-        // Quantity controls
         const minusBtn = itemElement.querySelector('.minus-btn');
         const plusBtn = itemElement.querySelector('.plus-btn');
         const quantityInput = itemElement.querySelector('.quantity-input');
@@ -242,7 +174,6 @@ class CartPage {
         });
         
         plusBtn?.addEventListener('click', () => {
-            // Check stock limit if available
             const maxQuantity = item.stock_qty ? Math.min(999, item.stock_qty) : 999;
             const newQuantity = Math.min(maxQuantity, item.quantity + 1);
             
@@ -257,7 +188,6 @@ class CartPage {
         quantityInput?.addEventListener('change', (e) => {
             let newQuantity = parseInt(e.target.value) || 1;
             
-            // Check stock limit if available
             if (item.stock_qty && newQuantity > item.stock_qty) {
                 window.sharedUtils?.showError(`الكمية المطلوبة تتجاوز المخزون المتاح (${item.stock_qty})`);
                 newQuantity = item.stock_qty;
@@ -269,7 +199,6 @@ class CartPage {
         });
         
         quantityInput?.addEventListener('blur', (e) => {
-            // Ensure valid value on blur
             let value = parseInt(e.target.value) || 1;
             const maxQuantity = item.stock_qty ? Math.min(999, item.stock_qty) : 999;
             value = Math.max(1, Math.min(maxQuantity, value));
@@ -325,10 +254,19 @@ class CartPage {
     }
 
     preparePrintData(cart) {
-        // Set current date and time
+        // Get current date and time with Latin numbers
         const now = new Date();
-        const dateStr = now.toLocaleDateString('ar-SA');
-        const timeStr = now.toLocaleTimeString('ar-SA');
+        
+        // Format date in Latin numbers with "م" (Gregorian)
+        const day = now.getDate();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+        const dateStr = `${year}/${month}/${day} م`;
+        
+        // Format time in Latin numbers (24-hour format)
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const timeStr = `${hours}:${minutes}`;
         
         if (this.printDate) this.printDate.textContent = dateStr;
         if (this.printTime) this.printTime.textContent = timeStr;
@@ -341,7 +279,6 @@ class CartPage {
                 const row = document.createElement('tr');
                 const itemTotal = (item.price * item.quantity).toFixed(2);
                 
-                // Create a small barcode for printing
                 const printBarcodeId = `print-barcode-${index}`;
                 
                 row.innerHTML = `
@@ -359,8 +296,8 @@ class CartPage {
                 
                 this.printItems.appendChild(row);
                 
-                // Generate small barcode for printing
-                setTimeout(() => this.generatePrintBarcode(printBarcodeId, item.barcode), 100);
+                // Generate compact barcode
+                setTimeout(() => this.generatePrintBarcode(printBarcodeId, item.barcode), 50);
             });
         }
         
@@ -379,23 +316,31 @@ class CartPage {
 
     generatePrintBarcode(canvasId, barcodeValue) {
         try {
-            if (typeof JsBarcode === 'undefined') return;
+            if (typeof JsBarcode === 'undefined') {
+                console.warn('JsBarcode library not loaded');
+                return;
+            }
 
             const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
+            if (!canvas) {
+                console.warn(`Canvas ${canvasId} not found`);
+                return;
+            }
 
-            // Generate smaller barcode for print
+            // Optimized barcode settings - bigger for easy scanning
             JsBarcode(canvas, barcodeValue, {
                 format: "CODE128",
-                width: 1,          // Thinner lines for print
-                height: 30,        // Smaller height for print
+                width: 2,           // INCREASED from 1 - thicker lines for better scanning
+                height: 40,         // INCREASED from 20/25 - taller for easy scanning
                 displayValue: false,
-                margin: 5,
+                margin: 5,          // INCREASED from 2/3 - better margin
                 fontSize: 0,
                 background: "#ffffff",
                 lineColor: "#000000"
             });
 
+            console.log(`Generated scannable barcode for: ${barcodeValue}`);
+            
         } catch (error) {
             console.error('Error generating print barcode:', error);
         }
@@ -409,27 +354,21 @@ class CartPage {
     }
 }
 
-// Initialize cart page when DOM loads and common utils are ready
+// Initialize cart page
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Cart page initializing...');
     
     try {
-        // Wait for common utilities
         await window.waitForCommonUtils();
-        
-        // Initialize navigation and cart page
         window.navigation = new BottomNavigation('cart');
         window.cartPage = new CartPage();
-        
         console.log('Cart page initialized successfully');
-        
     } catch (error) {
         console.error('Error initializing cart page:', error);
         window.sharedUtils?.showError('خطأ في تحميل صفحة السلة');
     }
 });
 
-// Handle page visibility changes
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && window.cartPage) {
         window.cartPage.loadCartData();
