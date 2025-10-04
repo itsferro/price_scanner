@@ -1,8 +1,7 @@
-/* ==================== CART.CSS - CART PAGE SPECIFIC STYLES (COMPACT VERSION) ==================== */
+/* ==================== CART.CSS - CART PAGE STYLES (COMPACT VERSION) ==================== */
 
 /* ==================== CART PAGE LAYOUT ==================== */
 .cart-page {
-    /* Use flexible layout for iOS compatibility */
     min-height: 100vh;
     min-height: 100svh;
     display: flex;
@@ -70,7 +69,7 @@
     min-height: 0;
 }
 
-/* ==================== CART ITEMS - COMPACT VERSION ==================== */
+/* ==================== CART ITEMS ==================== */
 .cart-items {
     display: flex;
     flex-direction: column;
@@ -116,692 +115,13 @@
 }
 
 .item-barcode {
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-    background: var(--bg-tertiary);
-    color: var(--text-secondary);
-    padding: 6px 10px;
-    border-radius: var(--radius-sm);
-    display: inline-block;
-    direction: ltr;
-    text-align: left;
-    border: 1px solid var(--border-light);
-    margin-bottom: 12px;
+    display: none !important;
 }
 
-.item-price {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-    font-weight: 600;
-    color: var(--primary);
-    font-size: 14px;
-}
-
-.price-separator {
-    color: var(--text-muted);
-    font-weight: 400;
-}
-
-.total-price {
-    color: var(--accent);
-    font-weight: 700;
-}
-
-/* ==================== ITEM CONTROLS - COMPACT ==================== */
-.item-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-light);
-}
-
-.quantity-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--bg-secondary);
-    padding: 6px 10px;
-    border-radius: var(--radius);
-    border: 1px solid var(--border-light);
-}
-
-.quantity-btn {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-medium);
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    transition: var(--transition);
-}
-
-.quantity-btn:hover {
-    background: var(--bg-tertiary);
-    border-color: var(--border-dark);
-    transform: scale(1.1);
-}
-
-.quantity-input {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-medium);
-    color: var(--text-primary);
-    text-align: center;
-    width: 50px;
-    padding: 4px 6px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.quantity-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.1);
-}
-
-.remove-btn {
-    background: var(--error);
-    border: none;
-    color: var(--text-inverse);
-    padding: 6px 12px;
-    border-radius: var(--radius);
-    font-size: 13px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    transition: var(--transition);
-    font-weight: 500;
-}
-
-.remove-btn:hover {
-    background: #b91c1c;
-    transform: translateY(-1px);
-}
-
-/* ==================== CART ACTIONS ==================== */
-.cart-actions {
-    position: fixed;
-    bottom: var(--nav-height);
-    left: 0;
-    right: 0;
-    background: var(--bg-primary);
-    border-top: 1px solid var(--border-light);
-    padding: 12px 20px;
-    z-index: 50;
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-    max-width: var(--max-width);
-    margin: 0 auto;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
-}
-
-.actions-row {
-    display: flex;
-    gap: 12px;
-    justify-content: space-between;
-}
-
-.action-btn {
-    flex: 1;
-    padding: 10px 16px;
-    min-height: 44px;
-    font-size: 14px;
-    max-width: calc(50% - 6px);
-    white-space: nowrap;
-}
-
-/* Special styling for clear cart button */
-#clear-cart-btn {
-    background-color: var(--error);
-    border: none;
-    color: var(--text-inverse);
-}
-
-#clear-cart-btn:hover:not(:disabled) {
-    background-color: #b91c1c;
-}
-
-/* ==================== EMPTY CART STATE ==================== */
-.empty-cart .empty-icon {
-    font-size: 80px;
-    margin-bottom: 20px;
-    color: var(--text-muted);
-    opacity: 0.6;
-}
-
-.empty-cart .empty-title {
-    font-size: 24px;
-    margin-bottom: 12px;
-    color: var(--text-primary);
-    font-weight: 600;
-}
-
-.empty-cart .empty-subtitle {
-    font-size: 16px;
-    margin-bottom: 32px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-}
-
-/* ==================== COMPACT PRINT TEMPLATE ==================== */
-.print-template {
-    display: none;
-}
-
-.print-header {
-    text-align: center;
-    margin-bottom: 15pt; /* Reduced from 30pt */
-    border-bottom: 1.5pt solid black; /* Reduced from 2pt */
-    padding-bottom: 8pt; /* Reduced from 15pt */
-}
-
-.print-header h1 {
-    font-size: 16pt; /* Reduced from default */
-    margin-bottom: 5pt;
-}
-
-.print-info {
-    margin-bottom: 12pt; /* Reduced from 20pt */
-    text-align: right;
-    font-size: 10pt; /* Reduced from 12pt */
-    line-height: 1.3;
-}
-
-.print-info p {
-    margin-bottom: 2pt;
-}
-
-.print-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 12pt; /* Reduced from 20pt */
-    direction: rtl;
-}
-
-.print-table th,
-.print-table td {
-    border: 1pt solid black;
-    padding: 4pt; /* Reduced from 8pt */
-    text-align: right;
-    font-size: 10pt; /* Reduced from 11pt */
-}
-
-.print-table th {
-    background: #f0f0f0;
-    font-weight: bold;
-    padding: 5pt; /* Slightly more than td for headers */
-}
-
-.item-name-cell {
-    width: 50%;
-}
-
-.quantity-cell,
-.price-cell,
-.total-cell {
-    width: 16.66%;
-    text-align: center;
-}
-
-.print-item-name {
-    font-weight: bold;
-    margin-bottom: 3pt; /* Reduced from 5pt */
-    font-size: 10pt; /* Reduced from 11pt */
-}
-
-.print-barcode-container {
-    text-align: center;
-    margin: 3pt 0; /* Reduced from 5pt */
-}
-
-.print-barcode {
-    display: block;
-    margin: 0 auto;
-    max-width: 100pt; /* Reduced from 120pt */
-    height: auto;
-}
-
-.print-item-barcode {
-    font-family: 'Courier New', monospace;
-    font-size: 8pt; /* Reduced from 9pt */
-    color: #666;
-    direction: ltr;
-    text-align: center;
-    margin-top: 2pt; /* Reduced from 3pt */
-}
-
-.print-totals {
-    border-top: 1.5pt solid black; /* Reduced from 2pt */
-    padding-top: 8pt; /* Reduced from 15pt */
-    text-align: right;
-}
-
-.total-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 3pt; /* Reduced from 5pt */
-    font-size: 11pt; /* Reduced from 12pt */
-}
-
-.grand-total {
-    font-weight: bold;
-    font-size: 13pt; /* Reduced from 14pt */
-    border-top: 1pt solid black;
-    padding-top: 6pt; /* Reduced from 10pt */
-    margin-top: 6pt; /* Reduced from 10pt */
-}
-
-.print-footer {
-    margin-top: 15pt; /* Reduced from 30pt */
-    text-align: center;
-    font-size: 9pt; /* Reduced from 10pt */
-    color: #666;
-    border-top: 1pt solid #ccc;
-    padding-top: 8pt; /* Reduced from 15pt */
-    line-height: 1.3;
-}
-
-.print-footer p {
-    margin-bottom: 2pt;
-}
-
-/* ==================== PRINT MEDIA QUERIES ==================== */
-
-@media print {
-    .print-template {
-        display: block !important;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: white;
-        color: black;
-        font-size: 10pt; /* Reduced from 12pt */
-        line-height: 1.3; /* Reduced from 1.4 */
-        padding: 15pt; /* Reduced from 20pt */
-        direction: rtl;
-    }
-    
-    body * {
-        visibility: hidden;
-    }
-    
-    .print-template,
-    .print-template * {
-        visibility: visible;
-    }
-    
-    /* Compact barcode for print */
-    .print-barcode-container {
-        page-break-inside: avoid;
-    }
-    
-    .print-barcode {
-        max-width: 100pt !important;
-        height: auto !important;
-    }
-    
-    /* Ensure compact spacing */
-    .print-table {
-        margin-bottom: 10pt;
-    }
-    
-    /* Hide debug borders */
-    .debug-border {
-        border: none !important;
-    }
-    
-    /* Prevent page breaks inside items */
-    .print-table tr {
-        page-break-inside: avoid;
-    }
-}
-
-/* ==================== CLEAR CART MODAL ==================== */
-.modal-warning {
-    color: var(--warning);
-    font-weight: 500;
-    margin-top: 8px;
-}
-
-/* ==================== HIDE BARCODE SECTION ==================== */
 .barcode-section {
     display: none !important;
 }
 
-/* ==================== MOBILE RESPONSIVE ==================== */
-
-/* Mobile specific adjustments */
-@media (max-width: 480px) {
-    .cart-summary {
-        padding: 16px;
-        gap: 12px;
-    }
-    
-    .summary-item {
-        padding: 10px 12px;
-    }
-    
-    .summary-label {
-        font-size: 12px;
-        margin-bottom: 2px;
-    }
-    
-    .summary-value {
-        font-size: 16px;
-        line-height: 1.2;
-    }
-    
-    .cart-main {
-        padding: 16px;
-        padding-bottom: calc(var(--nav-height) + 80px);
-    }
-    
-    .cart-actions {
-        padding: 10px 16px;
-    }
-    
-    .action-btn {
-        padding: 8px 12px;
-        min-height: 40px;
-        font-size: 13px;
-    }
-    
-    .action-btn .btn-icon {
-        font-size: 14px;
-    }
-    
-    .cart-item {
-        padding: 12px;
-    }
-    
-    .item-name {
-        font-size: 14px;
-    }
-    
-    .item-price {
-        font-size: 13px;
-        gap: 4px;
-    }
-    
-    .quantity-controls {
-        gap: 6px;
-        padding: 4px 8px;
-    }
-    
-    .quantity-input {
-        width: 45px;
-        padding: 3px 4px;
-        font-size: 12px;
-    }
-    
-    .quantity-btn {
-        width: 26px;
-        height: 26px;
-        font-size: 13px;
-    }
-    
-    .remove-btn {
-        padding: 5px 10px;
-        font-size: 12px;
-    }
-}
-
-/* Tablet adjustments */
-@media (max-width: 768px) and (min-width: 481px) {
-    .cart-summary {
-        padding: 18px;
-    }
-    
-    .summary-value {
-        font-size: 17px;
-    }
-    
-    .action-btn {
-        font-size: 15px;
-        min-height: 46px;
-        padding: 9px 14px;
-    }
-}
-
-/* ==================== PRINT STYLES ==================== */
-@media print {
-    .print-template {
-        display: block !important;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: white;
-        color: black;
-        font-size: 12pt;
-        line-height: 1.4;
-        padding: 20pt;
-        direction: rtl;
-    }
-    
-    body * {
-        visibility: hidden;
-    }
-    
-    .print-template,
-    .print-template * {
-        visibility: visible;
-    }
-    
-    /* Hide any debug elements when printing */
-    .debug-border {
-        border: none !important;
-    }
-}
-
-/* ==================== ACCESSIBILITY IMPROVEMENTS ==================== */
-@media (prefers-reduced-motion: reduce) {
-    .cart-item,
-    .quantity-btn,
-    .remove-btn,
-    .action-btn {
-        transition: none;
-    }
-}
-
-/* High contrast mode for cart items */
-@media (prefers-contrast: high) {
-    .cart-item {
-        border-width: 2px;
-    }
-    
-    .quantity-btn {
-        border-width: 2px;
-    }
-    
-    .item-stock {
-        border-width: 2px;
-    }
-}
-
-/* Focus indicators for cart controls */
-.quantity-btn:focus-visible,
-.quantity-input:focus-visible,
-.remove-btn:focus-visible,
-.action-btn:focus-visible {
-    outline: 3px solid var(--primary);
-    outline-offset: 2px;
-}
-
-/* ==================== PRINT BARCODE STYLES ==================== */
-
-.print-barcode-container {
-    text-align: center;
-    margin: 5pt 0;
-}
-
-.print-barcode {
-    display: block;
-    margin: 0 auto;
-    max-width: 120pt;
-    height: auto;
-}
-
-/* Update print item styles */
-.print-item-name {
-    font-weight: bold;
-    margin-bottom: 5pt;
-    font-size: 11pt;
-}
-
-.print-item-barcode {
-    font-family: 'Courier New', monospace;
-    font-size: 9pt;
-    color: #666;
-    direction: ltr;
-    text-align: center;
-    margin-top: 3pt;
-}
-
-/* ==================== PRINT MEDIA QUERIES ==================== */
-
-@media print {
-    .barcode-section {
-        display: none !important;
-    }
-    
-    /* Print-specific barcode styles */
-    .print-barcode-container {
-        page-break-inside: avoid;
-    }
-    
-    .print-barcode {
-        max-width: 80pt !important;
-        height: auto !important;
-    }
-}
-
-/* ==================== CART.CSS - CART PAGE SPECIFIC STYLES (COMPACT VERSION) ==================== */
-
-/* ==================== CART PAGE LAYOUT ==================== */
-.cart-page {
-    min-height: 100vh;
-    min-height: 100svh;
-    display: flex;
-    flex-direction: column;
-}
-
-@supports (-webkit-touch-callout: none) {
-    .cart-page {
-        height: auto;
-        min-height: 100vh;
-        min-height: -webkit-fill-available;
-    }
-}
-
-/* ==================== CART SUMMARY ==================== */
-.cart-summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    padding: 20px;
-    color: var(--text-inverse);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0;
-}
-
-.summary-item {
-    text-align: center;
-    padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: var(--radius);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    flex: 1;
-    min-width: 0;
-}
-
-.summary-label {
-    font-size: 14px;
-    opacity: 0.9;
-    margin-bottom: 4px;
-    display: block;
-    font-weight: 500;
-    color: var(--text-inverse);
-}
-
-.summary-value {
-    font-size: 18px;
-    font-weight: 700;
-    display: block;
-    color: var(--text-inverse);
-    word-break: break-all;
-}
-
-/* ==================== CART MAIN CONTENT ==================== */
-.cart-main {
-    flex: 1;
-    padding: 20px;
-    padding-bottom: calc(var(--nav-height) + 100px);
-    overflow-y: auto;
-    background: var(--bg-secondary);
-    -webkit-overflow-scrolling: touch;
-    min-height: 0;
-}
-
-/* ==================== CART ITEMS - COMPACT VERSION ==================== */
-.cart-items {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.cart-item {
-    background: var(--bg-primary);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius);
-    padding: 16px;
-    box-shadow: var(--shadow);
-    transition: var(--transition);
-}
-
-.cart-item:hover {
-    box-shadow: var(--shadow-lg);
-    border-color: var(--border-medium);
-}
-
-.item-info {
-    margin-bottom: 12px;
-}
-
-.item-name {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: var(--text-primary);
-}
-
-.item-stock {
-    color: var(--text-secondary);
-    font-size: 12px;
-    margin-bottom: 6px;
-    padding: 3px 6px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-sm);
-    display: inline-block;
-    font-weight: 500;
-    border: 1px solid var(--border-light);
-}
-
 .item-price {
     display: flex;
     align-items: center;
@@ -817,12 +137,17 @@
     font-weight: 400;
 }
 
+.unit-price,
+.quantity-display {
+    color: var(--text-primary);
+}
+
 .total-price {
     color: var(--accent);
     font-weight: 700;
 }
 
-/* ==================== ITEM CONTROLS - COMPACT ==================== */
+/* ==================== ITEM CONTROLS ==================== */
 .item-controls {
     display: flex;
     justify-content: space-between;
@@ -965,137 +290,6 @@
     line-height: 1.6;
 }
 
-/* ==================== HIDE BARCODE SECTION IN CART ==================== */
-.barcode-section {
-    display: none !important;
-}
-
-/* ==================== COMPACT PRINT TEMPLATE ==================== */
-.print-template {
-    display: none;
-}
-
-.print-header {
-    text-align: center;
-    margin-bottom: 15pt;
-    border-bottom: 1.5pt solid black;
-    padding-bottom: 8pt;
-}
-
-.print-header h1 {
-    font-size: 16pt;
-    margin-bottom: 5pt;
-}
-
-.print-info {
-    margin-bottom: 12pt;
-    text-align: right;
-    font-size: 10pt;
-    line-height: 1.3;
-}
-
-.print-info p {
-    margin-bottom: 2pt;
-}
-
-.print-content {
-    margin-bottom: 10pt;
-}
-
-.print-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 12pt;
-    direction: rtl;
-}
-
-.print-table th,
-.print-table td {
-    border: 1pt solid black;
-    padding: 4pt;
-    text-align: right;
-    font-size: 10pt;
-}
-
-.print-table th {
-    background: #f0f0f0;
-    font-weight: bold;
-    padding: 5pt;
-}
-
-.item-name-cell {
-    width: 50%;
-}
-
-.quantity-cell,
-.price-cell,
-.total-cell {
-    width: 16.66%;
-    text-align: center;
-}
-
-.print-item-name {
-    font-weight: bold;
-    margin-bottom: 3pt;
-    font-size: 10pt;
-}
-
-.print-barcode-container {
-    text-align: center;
-    margin: 3pt 0;
-}
-
-.print-barcode {
-    display: block;
-    margin: 0 auto;
-    max-width: 100pt;
-    height: auto;
-}
-
-.print-item-barcode {
-    font-family: 'Courier New', monospace;
-    font-size: 8pt;
-    color: #666;
-    direction: ltr;
-    text-align: center;
-    margin-top: 2pt;
-}
-
-.print-totals {
-    border-top: 1.5pt solid black;
-    padding-top: 8pt;
-    text-align: right;
-}
-
-.total-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 3pt;
-    font-size: 11pt;
-}
-
-.grand-total {
-    font-weight: bold;
-    font-size: 13pt;
-    border-top: 1pt solid black;
-    padding-top: 6pt;
-    margin-top: 6pt;
-}
-
-.print-footer {
-    margin-top: 15pt;
-    text-align: center;
-    font-size: 9pt;
-    color: #666;
-    border-top: 1pt solid #ccc;
-    padding-top: 8pt;
-    line-height: 1.3;
-}
-
-.print-footer p {
-    margin-bottom: 2pt;
-}
-
 /* ==================== CLEAR CART MODAL ==================== */
 .modal-warning {
     color: var(--warning);
@@ -1103,178 +297,7 @@
     margin-top: 8px;
 }
 
-/* ==================== MOBILE RESPONSIVE ==================== */
-@media (max-width: 480px) {
-    .cart-summary {
-        padding: 16px;
-        gap: 12px;
-    }
-    
-    .summary-item {
-        padding: 10px 12px;
-    }
-    
-    .summary-label {
-        font-size: 12px;
-        margin-bottom: 2px;
-    }
-    
-    .summary-value {
-        font-size: 16px;
-        line-height: 1.2;
-    }
-    
-    .cart-main {
-        padding: 16px;
-        padding-bottom: calc(var(--nav-height) + 80px);
-    }
-    
-    .cart-actions {
-        padding: 10px 16px;
-    }
-    
-    .action-btn {
-        padding: 8px 12px;
-        min-height: 40px;
-        font-size: 13px;
-    }
-    
-    .action-btn .btn-icon {
-        font-size: 14px;
-    }
-    
-    .cart-item {
-        padding: 12px;
-    }
-    
-    .item-name {
-        font-size: 14px;
-    }
-    
-    .item-price {
-        font-size: 13px;
-        gap: 4px;
-    }
-    
-    .quantity-controls {
-        gap: 6px;
-        padding: 4px 8px;
-    }
-    
-    .quantity-input {
-        width: 45px;
-        padding: 3px 4px;
-        font-size: 12px;
-    }
-    
-    .quantity-btn {
-        width: 26px;
-        height: 26px;
-        font-size: 13px;
-    }
-    
-    .remove-btn {
-        padding: 5px 10px;
-        font-size: 12px;
-    }
-}
-
-@media (max-width: 768px) and (min-width: 481px) {
-    .cart-summary {
-        padding: 18px;
-    }
-    
-    .summary-value {
-        font-size: 17px;
-    }
-    
-    .action-btn {
-        font-size: 15px;
-        min-height: 46px;
-        padding: 9px 14px;
-    }
-}
-
-/* ==================== PRINT STYLES ==================== */
-@media print {
-    .print-template {
-        display: block !important;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: white;
-        color: black;
-        font-size: 10pt;
-        line-height: 1.3;
-        padding: 15pt;
-        direction: rtl;
-    }
-    
-    body * {
-        visibility: hidden;
-    }
-    
-    .print-template,
-    .print-template * {
-        visibility: visible;
-    }
-    
-    .print-barcode-container {
-        page-break-inside: avoid;
-    }
-    
-    .print-barcode {
-        max-width: 100pt !important;
-        height: auto !important;
-    }
-    
-    .print-table {
-        margin-bottom: 10pt;
-    }
-    
-    .print-table tr {
-        page-break-inside: avoid;
-    }
-    
-    .debug-border {
-        border: none !important;
-    }
-}
-
-/* ==================== ACCESSIBILITY ==================== */
-@media (prefers-reduced-motion: reduce) {
-    .cart-item,
-    .quantity-btn,
-    .remove-btn,
-    .action-btn {
-        transition: none;
-    }
-}
-
-@media (prefers-contrast: high) {
-    .cart-item {
-        border-width: 2px;
-    }
-    
-    .quantity-btn {
-        border-width: 2px;
-    }
-    
-    .item-stock {
-        border-width: 2px;
-    }
-}
-
-.quantity-btn:focus-visible,
-.quantity-input:focus-visible,
-.remove-btn:focus-visible,
-.action-btn:focus-visible {
-    outline: 3px solid var(--primary);
-    outline-offset: 2px;
-}
-
-/* ==================== COMPACT PRINT - NO LINES, BIGGER BARCODES ==================== */
+/* ==================== COMPACT PRINT TEMPLATE (NO LINES, BIGGER BARCODES) ==================== */
 .print-template {
     display: none;
 }
@@ -1282,7 +305,6 @@
 .print-header {
     text-align: center;
     margin-bottom: 8pt;
-    /* REMOVED border-bottom */
     padding-bottom: 4pt;
 }
 
@@ -1293,7 +315,7 @@
 }
 
 .print-info {
-    margin-bottom: 8pt; /* Slightly increased for better spacing */
+    margin-bottom: 8pt;
     text-align: right;
     font-size: 9pt;
     line-height: 1.2;
@@ -1342,20 +364,20 @@
 
 .print-item-name {
     font-weight: bold;
-    margin-bottom: 3pt; /* Increased for barcode spacing */
+    margin-bottom: 3pt;
     font-size: 9pt;
     line-height: 1.1;
 }
 
 .print-barcode-container {
     text-align: center;
-    margin: 4pt 0; /* Increased for better spacing */
+    margin: 4pt 0;
 }
 
 .print-barcode {
     display: block;
     margin: 0 auto;
-    max-width: 120pt; /* INCREASED for easier scanning */
+    max-width: 120pt;
     height: auto;
 }
 
@@ -1369,8 +391,7 @@
 }
 
 .print-totals {
-    /* REMOVED border-top */
-    padding-top: 6pt; /* Increased for spacing instead of line */
+    padding-top: 6pt;
     text-align: right;
 }
 
@@ -1384,7 +405,7 @@
 .grand-total {
     font-weight: bold;
     font-size: 12pt;
-    border-top: 1pt solid black; /* Keep this one for emphasis */
+    border-top: 1pt solid black;
     padding-top: 4pt;
     margin-top: 4pt;
 }
@@ -1403,8 +424,99 @@
     margin-bottom: 1pt;
 }
 
-/* ==================== PRINT MEDIA QUERIES ==================== */
+/* ==================== MOBILE RESPONSIVE ==================== */
+@media (max-width: 480px) {
+    .cart-summary {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .summary-item {
+        padding: 10px 12px;
+    }
+    
+    .summary-label {
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+    
+    .summary-value {
+        font-size: 16px;
+        line-height: 1.2;
+    }
+    
+    .cart-main {
+        padding: 16px;
+        padding-bottom: calc(var(--nav-height) + 80px);
+    }
+    
+    .cart-actions {
+        padding: 10px 16px;
+    }
+    
+    .action-btn {
+        padding: 8px 12px;
+        min-height: 40px;
+        font-size: 13px;
+    }
+    
+    .action-btn .btn-icon {
+        font-size: 14px;
+    }
+    
+    .cart-item {
+        padding: 12px;
+    }
+    
+    .item-name {
+        font-size: 14px;
+    }
+    
+    .item-price {
+        font-size: 13px;
+        gap: 4px;
+    }
+    
+    .quantity-controls {
+        gap: 6px;
+        padding: 4px 8px;
+    }
+    
+    .quantity-input {
+        width: 45px;
+        padding: 3px 4px;
+        font-size: 12px;
+    }
+    
+    .quantity-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 13px;
+    }
+    
+    .remove-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+}
 
+@media (max-width: 768px) and (min-width: 481px) {
+    .cart-summary {
+        padding: 18px;
+    }
+    
+    .summary-value {
+        font-size: 17px;
+    }
+    
+    .action-btn {
+        font-size: 15px;
+        min-height: 46px;
+        padding: 9px 14px;
+    }
+}
+
+/* ==================== PRINT STYLES ==================== */
 @media print {
     .print-template {
         display: block !important;
@@ -1434,7 +546,7 @@
     }
     
     .print-barcode {
-        max-width: 120pt !important; /* BIGGER for easy scanning */
+        max-width: 120pt !important;
         height: auto !important;
     }
     
@@ -1463,7 +575,7 @@
     .print-header {
         margin-bottom: 6pt !important;
         padding-bottom: 3pt !important;
-        border-bottom: none !important; /* NO LINE */
+        border-bottom: none !important;
     }
     
     .print-header h1 {
@@ -1476,11 +588,43 @@
     
     .print-totals {
         padding-top: 6pt !important;
-        border-top: none !important; /* NO LINE */
+        border-top: none !important;
     }
     
     .print-footer {
         margin-top: 6pt !important;
         padding-top: 3pt !important;
     }
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+@media (prefers-reduced-motion: reduce) {
+    .cart-item,
+    .quantity-btn,
+    .remove-btn,
+    .action-btn {
+        transition: none;
+    }
+}
+
+@media (prefers-contrast: high) {
+    .cart-item {
+        border-width: 2px;
+    }
+    
+    .quantity-btn {
+        border-width: 2px;
+    }
+    
+    .item-stock {
+        border-width: 2px;
+    }
+}
+
+.quantity-btn:focus-visible,
+.quantity-input:focus-visible,
+.remove-btn:focus-visible,
+.action-btn:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
 }
