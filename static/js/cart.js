@@ -44,6 +44,9 @@ class CartPage {
         
         this.confirmClearBtn?.addEventListener('click', () => this.confirmClearCart());
         this.cancelClearBtn?.addEventListener('click', () => this.hideClearCartModal());
+
+        this.printOnHostBtn = document.getElementById('print-on-host-btn');
+        this.printOnHostBtn?.addEventListener('click', () => this.printOnHost());
         
         this.clearCartModal?.addEventListener('click', (e) => {
             if (e.target === this.clearCartModal) {
@@ -351,6 +354,313 @@ class CartPage {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // async printOnHost() {
+    //     const cart = window.cartManager?.getCart() || [];
+        
+    //     if (cart.length === 0) {
+    //         window.sharedUtils?.showError('السلة فارغة - لا يمكن طباعة فاتورة');
+    //         return;
+    //     }
+        
+    //     try {
+    //         // Show loading
+    //         if (this.printOnHostBtn) {
+    //             this.printOnHostBtn.disabled = true;
+    //             this.printOnHostBtn.innerHTML = '<span class="btn-icon">⏳</span>جاري الطباعة...';
+    //         }
+            
+    //         // Send print request to server
+    //         const response = await window.sharedUtils?.apiCall('/api/print-invoice', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({ cart: cart })
+    //         });
+            
+    //         if (!response) return;
+            
+    //         if (!response.ok) {
+    //             const errorData = await response.json();
+    //             throw new Error(errorData.detail || 'فشل في الطباعة');
+    //         }
+            
+    //         const result = await response.json();
+    //         window.sharedUtils?.showSuccess(result.message || 'تم إرسال الفاتورة للطباعة');
+            
+    //     } catch (error) {
+    //         console.error('Print on host error:', error);
+    //         window.sharedUtils?.showError('خطأ في الطباعة: ' + error.message);
+    //     } finally {
+    //         // Reset button
+    //         if (this.printOnHostBtn) {
+    //             this.printOnHostBtn.disabled = false;
+    //             this.printOnHostBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-print"></i></span>طباعة على الجهاز المضيف';
+    //         }
+    //     }
+    // }
+
+    // Add this new method to the CartPage class
+
+    async printOnHost() {
+        const cart = window.cartManager?.getCart() || [];
+        
+        if (cart.length === 0) {
+            window.sharedUtils?.showError('السلة فارغة - لا يمكن طباعة فاتورة');
+            return;
+        }
+        
+        try {
+            // Show loading
+            if (this.printOnHostBtn) {
+                this.printOnHostBtn.disabled = true;
+                this.printOnHostBtn.innerHTML = '<span class="btn-icon">⏳</span>جاري التحضير...';
+            }
+            
+            window.sharedUtils?.showSuccess('جاري إنشاء الفاتورة...');
+            
+            // Step 1: Prepare print data (generates barcodes)
+            this.preparePrintData(cart);
+            
+            // Wait for barcodes to render
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Step 2: Generate PDF from print template
+            const pdfBlob = await this.generatePDFFromTemplate();
+            
+            if (!pdfBlob) {
+                throw new Error('فشل في إنشاء ملف PDF');
+            }
+            
+            // Step 3: Upload PDF to server
+            window.sharedUtils?.showSuccess('جاري إرسال الفاتورة للطباعة...');
+            await this.uploadPDFBlob(pdfBlob);
+            
+            window.sharedUtils?.showSuccess('تم إرسال الفاتورة للطباعة بنجاح!');
+            
+        } catch (error) {
+            console.error('Print on host error:', error);
+            window.sharedUtils?.showError('خطأ: ' + error.message);
+        } finally {
+            // Reset button
+            if (this.printOnHostBtn) {
+                this.printOnHostBtn.disabled = false;
+                this.printOnHostBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-print"></i></span>طباعة على الجهاز المضيف';
+            }
+        }
+    }
+
+    async generatePDFFromTemplate() {
+        return new Promise((resolve, reject) => {
+            try {
+                const printTemplate = document.getElementById('print-template');
+                
+                if (!printTemplate) {
+                    reject(new Error('Print template not found'));
+                    return;
+                }
+                
+                // CRITICAL: Convert all canvas barcodes to images first
+                const canvases = printTemplate.querySelectorAll('.print-barcode');
+                console.log('Found barcodes to convert:', canvases.length);
+                
+                canvases.forEach(canvas => {
+                    if (canvas.tagName === 'CANVAS') {
+                        try {
+                            // Convert canvas to image
+                            const img = document.createElement('img');
+                            img.src = canvas.toDataURL('image/png');
+                            img.style.width = canvas.style.width || canvas.width + 'px';
+                            img.style.height = canvas.style.height || canvas.height + 'px';
+                            img.className = canvas.className;
+                            
+                            // Replace canvas with image
+                            canvas.parentNode.replaceChild(img, canvas);
+                            console.log('Converted canvas to image');
+                        } catch (e) {
+                            console.error('Failed to convert canvas:', e);
+                        }
+                    }
+                });
+                
+                // Create print window
+                const printWindow = window.open('', '_blank', 'width=800,height=1000');
+                
+                if (!printWindow) {
+                    reject(new Error('Failed to open print window'));
+                    return;
+                }
+                
+                // Get styles
+                const styles = Array.from(document.styleSheets)
+                    .map(sheet => {
+                        try {
+                            return Array.from(sheet.cssRules)
+                                .map(rule => rule.cssText)
+                                .join('\n');
+                        } catch (e) {
+                            return '';
+                        }
+                    })
+                    .join('\n');
+                
+                // Build HTML
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html dir="rtl" lang="ar">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Invoice</title>
+                        <style>
+                            ${styles}
+                            body { margin: 0; padding: 20px; background: white; }
+                            .print-template { display: block !important; }
+                            .print-barcode { display: block !important; max-width: 100%; }
+                        </style>
+                    </head>
+                    <body>
+                        ${printTemplate.innerHTML}
+                    </body>
+                    </html>
+                `);
+                
+                printWindow.document.close();
+                
+                // Wait for images to load
+                setTimeout(async () => {
+                    try {
+                        const element = printWindow.document.body;
+                        
+                        const opt = {
+                            margin: 10,
+                            filename: `Invoice_${Date.now()}.pdf`,
+                            image: { type: 'jpeg', quality: 0.95 },
+                            html2canvas: { 
+                                scale: 2,
+                                useCORS: true,
+                                allowTaint: true,
+                                backgroundColor: '#ffffff',
+                                logging: true
+                            },
+                            jsPDF: { 
+                                unit: 'mm', 
+                                format: 'a4', 
+                                orientation: 'portrait' 
+                            }
+                        };
+                        
+                        const pdfBlob = await html2pdf()
+                            .set(opt)
+                            .from(element)
+                            .toPdf()
+                            .output('blob');
+                        
+                        printWindow.close();
+                        
+                        console.log('PDF generated with barcodes:', pdfBlob.size, 'bytes');
+                        resolve(pdfBlob);
+                        
+                    } catch (error) {
+                        printWindow.close();
+                        reject(error);
+                    }
+                }, 2000); // Increased wait time for barcode images
+                
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async uploadPDFBlob(pdfBlob) {
+        try {
+            // Create form data with the PDF blob
+            const formData = new FormData();
+            const timestamp = new Date().getTime();
+            formData.append('file', pdfBlob, `Invoice_${timestamp}.pdf`);
+            
+            // Upload to server
+            const response = await window.sharedUtils?.apiCall('/api/upload-and-print', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response) {
+                throw new Error('لم يتم الحصول على استجابة من الخادم');
+            }
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `خطأ في الخادم: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('Upload successful:', result);
+            
+            return result;
+            
+        } catch (error) {
+            console.error('Upload error:', error);
+            throw new Error('فشل في رفع الملف: ' + error.message);
+        }
+    }
+
+    showUploadDialog() {
+        // Create file input
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.pdf';
+        fileInput.style.display = 'none';
+        
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                await this.uploadAndPrintPDF(file);
+            }
+            document.body.removeChild(fileInput);
+        });
+        
+        document.body.appendChild(fileInput);
+        
+        // Show instruction
+        window.sharedUtils?.showSuccess('الآن اختر ملف PDF الذي حفظته');
+        
+        // Trigger file picker
+        setTimeout(() => fileInput.click(), 500);
+    }
+
+    async uploadAndPrintPDF(file) {
+        try {
+            window.sharedUtils?.showLoading();
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Upload to server
+            const response = await window.sharedUtils?.apiCall('/api/upload-and-print', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response) return;
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'فشل في رفع الملف');
+            }
+            
+            const result = await response.json();
+            window.sharedUtils?.showSuccess(result.message || 'تم رفع الفاتورة وإرسالها للطباعة');
+            
+        } catch (error) {
+            console.error('Upload and print error:', error);
+            window.sharedUtils?.showError('خطأ في رفع الملف: ' + error.message);
+        } finally {
+            window.sharedUtils?.hideLoading();
+        }
     }
 }
 

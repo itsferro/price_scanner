@@ -96,9 +96,14 @@
                     <span class="btn-icon"><i class="fas fa-trash-alt"></i></span>
                     مسح الكل
                 </button>
-                <button id="print-invoice-btn" class="btn btn-accent action-btn">
+                <!-- ADD THIS NEW BUTTON -->
+                <button id="print-on-host-btn" class="btn btn-primary action-btn">
                     <span class="btn-icon"><i class="fas fa-print"></i></span>
-                    طباعة فاتورة
+                    طباعة على الجهاز المضيف
+                </button>
+                <button id="print-invoice-btn" class="btn btn-accent action-btn">
+                    <span class="btn-icon"><i class="fas fa-mobile-alt"></i></span>
+                    طباعة من الهاتف
                 </button>
             </div>
         </div>
@@ -175,6 +180,10 @@
             </div>
         </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Load JavaScript libraries -->
     <!-- JsBarcode library for generating scannable barcodes -->

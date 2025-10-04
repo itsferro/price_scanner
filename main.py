@@ -12,6 +12,10 @@ from starlette.middleware.sessions import SessionMiddleware
 from dotenv import load_dotenv
 from database import get_product_by_barcode, test_connection, verify_user_credentials
 import secrets
+# from printer_utils import print_invoice
+from fastapi import File, UploadFile
+import shutil
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -323,6 +327,87 @@ async def health_check():
         "database": "connected" if is_connected else "disconnected",
         "message": message
     }
+
+# @app.post("/api/print-invoice")
+# async def print_invoice_on_host(request: Request, current_user: str = Depends(get_current_user)):
+    """Print invoice on host PC's default printer"""
+    try:
+        # Get cart data from request
+        data = await request.json()
+        cart_items = data.get('cart', [])
+        
+        if not cart_items:
+            raise HTTPException(status_code=400, detail="السلة فارغة")
+        
+        # Get username for invoice
+        username = current_user or "Unknown User"
+        
+        # Print invoice
+        success, message, pdf_path = print_invoice(cart_items, username)
+        
+        if success:
+            return {
+                "success": True,
+                "message": "تم إرسال الفاتورة للطباعة بنجاح",
+                "printer_message": message
+            }
+        else:
+            raise HTTPException(status_code=500, detail=message)
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"خطأ في الطباعة: {str(e)}"
+        )
+    
+@app.post("/api/upload-and-print")
+async def upload_and_print_pdf(
+    file: UploadFile = File(...),
+    current_user: str = Depends(get_current_user)
+):
+    """Receive PDF from phone and print it on host PC"""
+    try:
+        # Validate file type
+        if not file.filename.endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+        
+        # Create directory for uploaded invoices
+        upload_dir = os.path.join(os.path.expanduser('~'), 'Documents', 'Price_Scanner_Invoices')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Save uploaded PDF
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        pdf_filename = f"Invoice_Uploaded_{timestamp}.pdf"
+        pdf_path = os.path.join(upload_dir, pdf_filename)
+        
+        # Write file
+        with open(pdf_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        print(f"PDF received and saved: {pdf_path}")
+        
+        # Print the PDF
+        from printer_utils import print_pdf_to_default_printer
+        success, action, message = print_pdf_to_default_printer(pdf_path)
+        
+        if success:
+            return {
+                "success": True,
+                "message": "تم استلام الفاتورة وإرسالها للطباعة",
+                "file_path": pdf_path
+            }
+        else:
+            raise HTTPException(status_code=500, detail=message)
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"خطأ في استقبال أو طباعة الملف: {str(e)}"
+        )
 
 if __name__ == "__main__":
     import uvicorn

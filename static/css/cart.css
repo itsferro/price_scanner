@@ -628,3 +628,18 @@
     outline: 3px solid var(--primary);
     outline-offset: 2px;
 }
+.actions-row {
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 10px 12px;
+    min-height: 44px;
+    font-size: 13px;
+    min-width: 0;
+    white-space: nowrap;
+}
