@@ -232,7 +232,7 @@ class ScannerPage {
                 camera.label.toLowerCase().includes('environment')
             );
             
-            const cameraId = backCamera?.id || this.availableCameras[0].id;
+            const cameraId = backCamera?.id || this.availableCameras[3].id;
             this.currentCameraIndex = this.availableCameras.findIndex(cam => cam.id === cameraId);
 
             // FIXED: Optimized camera config for better iOS compatibility

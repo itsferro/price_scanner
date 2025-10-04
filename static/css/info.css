@@ -1,0 +1,368 @@
+/* ==================== INFO.CSS - INFO PAGE SPECIFIC STYLES ==================== */
+
+/* ==================== INFO PAGE LAYOUT ==================== */
+.info-page {
+    /* Use flexible layout for compatibility */
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    .info-page {
+        height: auto;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* ==================== INFO HEADER ==================== */
+.info-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--text-inverse);
+    padding: 16px 20px;
+    min-height: var(--header-height);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================== INFO MAIN CONTENT ==================== */
+.info-main {
+    padding: 20px;
+    padding-bottom: calc(var(--nav-height) + 20px);
+    overflow-y: auto;
+    flex: 1;
+    background: var(--bg-secondary);
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ==================== INFO SECTIONS ==================== */
+.info-section {
+    margin-bottom: 32px;
+}
+
+.section-header {
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.section-icon {
+    font-size: 20px;
+    color: var(--primary);
+}
+
+.section-subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ==================== INFO CARDS ==================== */
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.info-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.info-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-medium);
+}
+
+.card-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-value {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--text-primary);
+}
+
+/* ==================== STATUS INDICATORS ==================== */
+.status-indicator {
+    font-size: 14px;
+}
+
+.status-indicator.connected {
+    color: var(--success);
+}
+
+.status-indicator.disconnected {
+    color: var(--error);
+}
+
+.status-indicator.checking {
+    color: var(--warning);
+}
+
+/* ==================== URL SECTION ==================== */
+.url-section {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.url-display {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-medium);
+    border-radius: var(--radius);
+    padding: 16px;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    word-break: break-all;
+    transition: var(--transition);
+}
+
+.url-display.has-url {
+    background: var(--primary-bg);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.url-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.placeholder-icon {
+    font-size: 20px;
+    opacity: 0.6;
+}
+
+.url-text {
+    font-family: 'Courier New', monospace;
+    color: var(--primary);
+    font-weight: 600;
+    direction: ltr;
+    text-align: center;
+}
+
+/* ==================== URL ACTIONS ==================== */
+.url-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.url-btn {
+    flex: 1;
+    min-width: 120px;
+}
+
+/* ==================== INSTRUCTIONS LIST ==================== */
+.instructions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.instruction-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.instruction-number {
+    background: var(--primary);
+    color: var(--text-inverse);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.instruction-content {
+    flex: 1;
+}
+
+.instruction-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.instruction-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ==================== TIPS LIST ==================== */
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    border-left: 4px solid var(--accent);
+}
+
+.tip-icon {
+    font-size: 18px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.tip-text {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ==================== QR CODE MODAL ==================== */
+.qr-modal-content {
+    max-width: 320px;
+}
+
+.qr-code-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    margin-bottom: 16px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+}
+
+.qr-loading,
+.qr-error {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.qr-error {
+    color: var(--error);
+}
+
+.qr-instructions {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Mobile styles */
+@media (max-width: 480px) {
+    .info-main {
+        padding: 16px;
+        padding-bottom: calc(var(--nav-height) + 20px);
+    }
+    
+    .info-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .url-actions {
+        flex-direction: column;
+    }
+    
+    .url-btn {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .instruction-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .info-card {
+        padding: 16px;
+    }
+}
+
+/* Tablet styles */
+@media (max-width: 768px) {
+    .info-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .info-card {
+        border-width: 2px;
+    }
+    
+    .tip-item {
+        border-width: 2px;
+        border-left-width: 4px;
+    }
+    
+    .instruction-item {
+        border-width: 2px;
+    }
+}
+
+/* Focus indicators */
+.url-btn:focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+}
